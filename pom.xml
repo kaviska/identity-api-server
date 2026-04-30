@@ -462,6 +462,12 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>org.wso2.carbon.identity.server.api</groupId>
+                <artifactId>org.wso2.carbon.identity.api.server.device.policy.common</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-rs-extension-search</artifactId>
                 <version>${cxf.extensions.search.version}</version>
@@ -519,6 +525,12 @@
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.cors.mgt.core</artifactId>
                 <version>${carbon.identity.framework.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.device.policy.management</artifactId>
+                <version>7.10.149-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -1139,6 +1151,7 @@
         <module>components/org.wso2.carbon.identity.api.server.asynchronous.operation.status.management</module>
         <module>components/org.wso2.carbon.identity.api.server.vc.template.management</module>
         <module>components/org.wso2.carbon.identity.api.server.credential.management</module>
+        <module>components/org.wso2.carbon.identity.api.server.device.policy</module>
     </modules>
 
 </project>

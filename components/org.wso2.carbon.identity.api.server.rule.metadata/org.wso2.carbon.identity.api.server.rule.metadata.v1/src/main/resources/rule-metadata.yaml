@@ -37,7 +37,7 @@ paths:
         description: |
           Specifies the flow to retrieve rule metadata. This ensures that the metadata returned is relevant to the given flow.
 
-          Note: At present, only the 'preIssueAccessToken', 'preUpdatePassword' and 'preIssueIdToken' flows are supported.
+          Note: At present, only the 'preIssueAccessToken', 'preUpdatePassword', 'preIssueIdToken' and 'devicePolicy' flows are supported.
         required: true
         style: form
         explode: true
@@ -54,6 +54,7 @@ paths:
           - preRegistration
           - inRegistration
           - inPasswordExpiry
+          - devicePolicy
       responses:
         "200":
           description: Applicable fields and operators
@@ -239,6 +240,82 @@ paths:
                     value:
                       inputType: input
                       valueType: string
+                devicePolicy:
+                  summary: Sample response for device policy flow
+                  value:
+                  - field:
+                      name: platform
+                      displayName: platform
+                    operators:
+                    - name: equals
+                      displayName: equals
+                    - name: notEquals
+                      displayName: not equals
+                    value:
+                      inputType: options
+                      valueType: string
+                      values:
+                      - name: android
+                        displayName: Android
+                      - name: ios
+                        displayName: iOS
+                      - name: macos
+                        displayName: macOS
+                      - name: windows
+                        displayName: Windows
+                  - field:
+                      name: osVersion
+                      displayName: OS version
+                    operators:
+                    - name: equals
+                      displayName: equals
+                    - name: notEquals
+                      displayName: not equals
+                    value:
+                      inputType: input
+                      valueType: string
+                  - field:
+                      name: isRooted
+                      displayName: is rooted
+                    operators:
+                    - name: equals
+                      displayName: equals
+                    value:
+                      inputType: options
+                      valueType: string
+                      values:
+                      - name: "true"
+                        displayName: "Yes"
+                      - name: "false"
+                        displayName: "No"
+                  - field:
+                      name: diskEncryption
+                      displayName: disk encryption
+                    operators:
+                    - name: equals
+                      displayName: equals
+                    value:
+                      inputType: options
+                      valueType: string
+                      values:
+                      - name: "true"
+                        displayName: Enabled
+                      - name: "false"
+                        displayName: Disabled
+                  - field:
+                      name: jailbreak
+                      displayName: jailbreak
+                    operators:
+                    - name: equals
+                      displayName: equals
+                    value:
+                      inputType: options
+                      valueType: string
+                      values:
+                      - name: "true"
+                        displayName: "Yes"
+                      - name: "false"
+                        displayName: "No"
         "400":
           description: Bad Request
         "401":
