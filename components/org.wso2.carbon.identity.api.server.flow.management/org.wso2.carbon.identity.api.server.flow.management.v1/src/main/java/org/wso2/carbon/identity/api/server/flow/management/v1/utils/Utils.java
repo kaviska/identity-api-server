@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.api.server.flow.management.v1.Size;
 import org.wso2.carbon.identity.api.server.flow.management.v1.Step;
 import org.wso2.carbon.identity.api.server.flow.management.v1.constants.FlowEndpointConstants;
 import org.wso2.carbon.identity.api.server.flow.management.v1.response.handlers.AbstractMetaResponseHandler;
+import org.wso2.carbon.identity.api.server.flow.management.v1.response.handlers.DeviceRegistrationFlowMetaHandler;
 import org.wso2.carbon.identity.api.server.flow.management.v1.response.handlers.PasswordRecoveryFlowMetaHandler;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
@@ -513,6 +514,16 @@ public class Utils {
                         FlowEndpointConstants.ErrorMessages.ERROR_CODE_REQUIRED_EXECUTOR_MISSING.getDescription()));
             }
         }
+
+        // For device registration flow, ensure DeviceRegistrationExecutor is present.
+        if (metaResponseHandler instanceof DeviceRegistrationFlowMetaHandler) {
+            if (!executors.contains(FlowEndpointConstants.Executors.DEVICE_REGISTRATION_EXECUTOR)) {
+                throw handleFlowMgtException(new FlowMgtClientException(
+                        FlowEndpointConstants.ErrorMessages.ERROR_CODE_REQUIRED_EXECUTOR_MISSING.getCode(),
+                        FlowEndpointConstants.ErrorMessages.ERROR_CODE_REQUIRED_EXECUTOR_MISSING.getMessage(),
+                        FlowEndpointConstants.ErrorMessages.ERROR_CODE_REQUIRED_EXECUTOR_MISSING.getDescription()));
+            }
+        }
     }
 
     public static FlowConfig convertToFlowConfig(FlowConfigDTO flowConfig) {
@@ -529,7 +540,10 @@ public class Utils {
         FlowConfigDTO config = new FlowConfigDTO();
         config.setFlowType(flowConfig.getFlowType());
         config.setIsEnabled(flowConfig.getIsEnabled() != null && flowConfig.getIsEnabled());
-        config.addAllFlowCompletionConfigs(flowConfig.getFlowCompletionConfigs());
+        Map<String, String> completionConfigs = flowConfig.getFlowCompletionConfigs();
+        if (completionConfigs != null) {
+            config.addAllFlowCompletionConfigs(completionConfigs);
+        }
         return config;
     }
 
