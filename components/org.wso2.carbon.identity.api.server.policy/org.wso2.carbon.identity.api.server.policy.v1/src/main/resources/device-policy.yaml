@@ -1,0 +1,523 @@
+openapi: 3.0.0
+info:
+  version: "1.0.0"
+  title: 'WSO2 Identity Server - Device Policy API Definition'
+  description: 'This document specifies a RESTful API for WSO2 Identity Server Device Policy Management'
+  contact:
+    name: WSO2
+    url: 'http://wso2.com/products/identity-server/'
+    email: architecture@wso2.org
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+security:
+  - OAuth2: []
+  - BasicAuth: []
+paths:
+  /policies:
+    get:
+      tags:
+        - Policy Management
+      summary: List all device policies.
+      operationId: getPolicies
+      description: This API provides the capability to retrieve all device policies for the tenant.
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PolicyResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Policy Management
+      summary: Create a device policy.
+      operationId: addPolicy
+      description: This API provides the capability to create a new device policy.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyRequest'
+      responses:
+        '201':
+          description: Successfully Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /policies/metadata:
+    get:
+      tags:
+        - Policy Management
+      summary: Get device policy field metadata filtered by platform.
+      operationId: getPolicyMetadata
+      description: |
+        Returns the list of rule fields applicable for the devicePolicy flow,
+        optionally filtered to a specific platform. Used by the UI to populate
+        the rule builder with platform-relevant fields only.
+      parameters:
+        - name: platform
+          in: query
+          description: Filter fields to those applicable for this platform. If omitted all fields are returned.
+          required: false
+          schema:
+            type: string
+            enum:
+              - android
+              - ios
+              - macos
+              - windows
+      responses:
+        '200':
+          description: Applicable fields for the given platform.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DevicePolicyFieldDefinition'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /policies/{policy-id}:
+    get:
+      tags:
+        - Policy Management
+      summary: Get a device policy by ID.
+      operationId: getPolicyById
+      description: This API provides the capability to retrieve a device policy by ID.
+      parameters:
+        - name: policy-id
+          in: path
+          description: ID of the device policy
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Policy Management
+      summary: Update a device policy.
+      operationId: updatePolicy
+      description: This API provides the capability to update an existing device policy.
+      parameters:
+        - name: policy-id
+          in: path
+          description: ID of the device policy
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Policy Management
+      summary: Delete a device policy.
+      operationId: deletePolicy
+      description: This API provides the capability to delete a device policy by ID.
+      parameters:
+        - name: policy-id
+          in: path
+          description: ID of the device policy
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Successfully Deleted
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+servers:
+  - url: 'https://localhost:9443/t/{tenant-domain}/api/server/v1'
+    variables:
+      tenant-domain:
+        default: carbon.super
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: 'https://localhost:9443/oauth2/authorize'
+          tokenUrl: 'https://localhost:9443/oauth2/token'
+          scopes:
+            read: internal_device_policy_mgt_view
+            write: internal_device_policy_mgt_create
+            update: internal_device_policy_mgt_update
+            delete: internal_device_policy_mgt_delete
+  schemas:
+    PolicyRequest:
+      type: object
+      required:
+        - name
+        - resources
+      example:
+        name: "Corporate Device Policy"
+        resources:
+          - target: "ios"
+            resourceType: "RULE"
+            rule:
+              condition: "AND"
+              expressions:
+                - field: "osVersion"
+                  operator: "equals"
+                  value: "16.0"
+                - field: "jailbreak"
+                  operator: "equals"
+                  value: "false"
+      properties:
+        name:
+          type: string
+          description: The name of the device policy.
+          example: "Corporate Device Policy"
+        resources:
+          type: array
+          description: Resources attached to the policy. Each target may have at most one resource of each type.
+          items:
+            $ref: '#/components/schemas/PolicyResourceRequest'
+    PolicyResourceRequest:
+      type: object
+      required:
+        - target
+        - rule
+      properties:
+        target:
+          type: string
+          description: The selector value this resource applies to (e.g. device platform - android, ios, macos, windows).
+          example: "ios"
+        resourceType:
+          type: string
+          enum: [RULE, ACTION]
+          description: The type of resource. Defaults to RULE. Only RULE is currently supported.
+          example: "RULE"
+        rule:
+          $ref: '#/components/schemas/RuleRequest'
+    RuleRequest:
+      type: object
+      required:
+        - condition
+        - expressions
+      properties:
+        condition:
+          type: string
+          enum: [AND, OR]
+          description: The logical operator combining the expressions.
+          example: "AND"
+        expressions:
+          type: array
+          description: The list of expressions that define the rule conditions.
+          items:
+            $ref: '#/components/schemas/ExpressionRequest'
+    ExpressionRequest:
+      type: object
+      required:
+        - field
+        - operator
+        - value
+      properties:
+        field:
+          type: string
+          description: The field to evaluate.
+          example: "device.platform"
+        operator:
+          type: string
+          description: The operator to apply.
+          example: "equals"
+        value:
+          type: string
+          description: The value to compare against.
+          example: "Android"
+    PolicyResponse:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          description: The device policy resource ID.
+          example: "74070bae-df8c-42bf-8754-5173c237c936"
+        name:
+          type: string
+          description: The name of the device policy.
+          example: "Corporate Device Policy"
+        resources:
+          type: array
+          description: Resources associated with the policy.
+          items:
+            $ref: '#/components/schemas/PolicyResourceResponse'
+    PolicyResourceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The policy-resource association ID.
+          example: "pr-456"
+        target:
+          type: string
+          description: The selector value this resource applies to (e.g. device platform).
+          example: "ios"
+        resourceType:
+          type: string
+          enum: [RULE, ACTION]
+          description: The type of resource.
+          example: "RULE"
+        resourceId:
+          type: string
+          description: The ID of the attached resource (rule ID or action ID).
+          example: "rule-123"
+        rule:
+          $ref: '#/components/schemas/RuleResponse'
+    RuleResponse:
+      type: object
+      properties:
+        rules:
+          type: array
+          description: List of AND-combined expression groups, OR'd together.
+          items:
+            $ref: '#/components/schemas/ANDRuleResponse'
+    ANDRuleResponse:
+      type: object
+      properties:
+        expressions:
+          type: array
+          description: Expressions combined with AND logic.
+          items:
+            $ref: '#/components/schemas/ExpressionResponse'
+    ExpressionResponse:
+      type: object
+      properties:
+        field:
+          type: string
+          description: The field to evaluate.
+          example: "platform"
+        displayName:
+          type: string
+          description: The human-readable display name of the field.
+          example: "Platform"
+        operator:
+          type: string
+          description: The operator to apply.
+          example: "equals"
+        value:
+          $ref: '#/components/schemas/ExpressionValue'
+    ExpressionValue:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [STRING, NUMBER, BOOLEAN, DATE_TIME, REFERENCE, RAW, LIST, SYMBOLIC]
+          description: The value type.
+          example: "STRING"
+        value:
+          type: string
+          description: The value to compare against.
+          example: "ios"
+    DevicePolicyFieldDefinition:
+      type: object
+      properties:
+        field:
+          $ref: '#/components/schemas/DevicePolicyField'
+        operators:
+          type: array
+          items:
+            $ref: '#/components/schemas/DevicePolicyOperator'
+        value:
+          $ref: '#/components/schemas/DevicePolicyValue'
+    DevicePolicyField:
+      type: object
+      properties:
+        name:
+          type: string
+          example: platform
+        displayName:
+          type: string
+          example: platform
+    DevicePolicyOperator:
+      type: object
+      properties:
+        name:
+          type: string
+          example: equals
+        displayName:
+          type: string
+          example: equals
+    DevicePolicyValue:
+      type: object
+      properties:
+        inputType:
+          type: string
+          enum: [input, options]
+          example: options
+        valueType:
+          type: string
+          enum: [string, number, boolean, date, reference, symbolic]
+          example: string
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/DevicePolicyValueObject'
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/DevicePolicyLink'
+    DevicePolicyValueObject:
+      type: object
+      properties:
+        name:
+          type: string
+          example: android
+        displayName:
+          type: string
+          example: Android
+    DevicePolicyLink:
+      type: object
+      properties:
+        href:
+          type: string
+        method:
+          type: string
+          enum: [GET]
+        rel:
+          type: string
+          enum: [values, filter]
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          example: PM-60001
+        message:
+          type: string
+          example: Some Error Message.
+        description:
+          type: string
+          example: Some Error Description.
+        traceId:
+          type: string
+          example: "e0fbcfeb-3617-43c4-8dd0-7b7d38e13047"

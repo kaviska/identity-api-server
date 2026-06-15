@@ -463,7 +463,13 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.server.api</groupId>
-                <artifactId>org.wso2.carbon.identity.api.server.device.policy.common</artifactId>
+                <artifactId>org.wso2.carbon.identity.api.server.policy.common</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.server.api</groupId>
+                <artifactId>org.wso2.carbon.identity.api.server.device.mgt.common</artifactId>
                 <version>${project.version}</version>
                 <scope>provided</scope>
             </dependency>
@@ -529,7 +535,13 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.device.policy.management</artifactId>
+                <artifactId>org.wso2.carbon.identity.policy.management</artifactId>
+                <version>7.11.110-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.device.mgt</artifactId>
                 <version>7.10.149-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
@@ -1151,7 +1163,8 @@
         <module>components/org.wso2.carbon.identity.api.server.asynchronous.operation.status.management</module>
         <module>components/org.wso2.carbon.identity.api.server.vc.template.management</module>
         <module>components/org.wso2.carbon.identity.api.server.credential.management</module>
-        <module>components/org.wso2.carbon.identity.api.server.device.policy</module>
+        <module>components/org.wso2.carbon.identity.api.server.policy</module>
+        <module>components/org.wso2.carbon.identity.api.server.device.mgt</module>
     </modules>
 
 </project>
