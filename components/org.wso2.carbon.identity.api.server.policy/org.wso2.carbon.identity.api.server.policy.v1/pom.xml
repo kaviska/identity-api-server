@@ -97,7 +97,12 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.rule.metadata</artifactId>
-            <version>7.10.149-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.device.policy</artifactId>
+            <version>${carbon.identity.framework.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -118,7 +123,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/device-policy.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/policy.yaml</inputSpec>
                             <generatorName>org.wso2.carbon.codegen.CxfWso2Generator</generatorName>
                             <configOptions>
                                 <sourceFolder>src/gen/java</sourceFolder>

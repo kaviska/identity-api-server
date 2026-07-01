@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.util.List;
 import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyFieldDefinition;
 import org.wso2.carbon.identity.api.server.policy.v1.model.Error;
+import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListResponse;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyRequest;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyResponse;
 import javax.ws.rs.core.Response;
@@ -37,7 +38,7 @@ public interface PoliciesApiService {
 
       public Response deletePolicy(String policyId);
 
-      public Response getPolicies();
+      public Response getPolicies(Integer limit, Integer offset, String filter);
 
       public Response getPolicyById(String policyId);
 

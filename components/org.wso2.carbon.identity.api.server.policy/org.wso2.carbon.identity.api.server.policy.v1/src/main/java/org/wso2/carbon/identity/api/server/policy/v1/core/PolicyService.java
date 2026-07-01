@@ -18,12 +18,10 @@
 
 package org.wso2.carbon.identity.api.server.policy.v1.core;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.server.common.ContextLoader;
+import org.wso2.carbon.identity.api.server.common.Util;
 import org.wso2.carbon.identity.api.server.policy.common.Constants;
 import org.wso2.carbon.identity.api.server.policy.common.PolicyServiceHolder;
 import org.wso2.carbon.identity.api.server.policy.v1.function.PolicyRequestToPolicy;
@@ -34,11 +32,17 @@ import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyLink;
 import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyOperator;
 import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyValue;
 import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyValueObject;
+import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListItem;
+import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListLink;
+import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListResponse;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyRequest;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyResponse;
 import org.wso2.carbon.identity.api.server.policy.v1.util.PolicyManagementAPIErrorBuilder;
+import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
+import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
@@ -47,7 +51,6 @@ import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsValue;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,9 +65,8 @@ import javax.ws.rs.core.Response;
 public class PolicyService {
 
     private static final Log LOG = LogFactory.getLog(PolicyService.class);
-    private static final String DEVICE_FIELDS_CONFIG_PATH = "repository" + File.separator
-            + "resources" + File.separator + "identity" + File.separator
-            + "device-policy" + File.separator + "device-fields.json";
+    private static final int DEFAULT_LIMIT = 30;
+    private static final int DEFAULT_OFFSET = 0;
 
     private final PolicyManagementService policyManagementService;
 
@@ -132,6 +134,12 @@ public class PolicyService {
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
             policyManagementService.deletePolicy(policyId, tenantDomain);
+        } catch (PolicyManagementClientException e) {
+            if (ErrorMessage.ERROR_POLICY_NOT_FOUND.getCode().equals(e.getErrorCode())) {
+                return;
+            }
+            throw PolicyManagementAPIErrorBuilder.handleException(e,
+                    Constants.ErrorMessage.ERROR_CODE_ERROR_DELETING_POLICY);
         } catch (PolicyManagementException e) {
             throw PolicyManagementAPIErrorBuilder.handleException(e,
                     Constants.ErrorMessage.ERROR_CODE_ERROR_DELETING_POLICY);
@@ -139,19 +147,62 @@ public class PolicyService {
     }
 
     /**
-     * Get all device policies for the current tenant.
+     * Get a paginated list of device policy summaries for the current tenant, optionally filtered by name.
+     *
+     * @param limit  Maximum number of records to return (defaults to 30 when null).
+     * @param offset Number of records to skip (defaults to 0 when null).
+     * @param filter Name substring filter; null or blank returns all policies.
+     * @return Paginated policy list response.
      */
-    public List<PolicyResponse> getPolicies() {
+    public PolicyListResponse getPolicies(Integer limit, Integer offset, String filter) {
+
+        int resolvedLimit = limit != null ? limit : DEFAULT_LIMIT;
+        int resolvedOffset = offset != null ? offset : DEFAULT_OFFSET;
+        validatePaginationParameters(resolvedLimit, resolvedOffset);
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            List<Policy> policies = policyManagementService.getPolicies(tenantDomain);
-            return policies.stream()
-                    .map(new PolicyToPolicyResponse()::apply)
-                    .collect(java.util.stream.Collectors.toList());
+            int totalResults = policyManagementService.getPolicyCount(tenantDomain, filter);
+            List<PolicyBasicInfo> policies =
+                    policyManagementService.getPolicies(tenantDomain, filter, resolvedOffset, resolvedLimit);
+
+            List<PolicyListItem> items = policies.stream()
+                    .map(this::toPolicyListItem)
+                    .collect(Collectors.toList());
+
+            List<PolicyListLink> links = Util.buildPaginationLinks(
+                            resolvedLimit, resolvedOffset, totalResults, Constants.POLICY_PATH_COMPONENT, null, filter)
+                    .entrySet().stream()
+                    .map(link -> new PolicyListLink().rel(link.getKey()).href(link.getValue()))
+                    .collect(Collectors.toList());
+
+            return new PolicyListResponse()
+                    .totalResults(totalResults)
+                    .startIndex(resolvedOffset + 1)
+                    .count(items.size())
+                    .policies(items)
+                    .links(links);
         } catch (PolicyManagementException e) {
             throw PolicyManagementAPIErrorBuilder.handleException(e,
                     Constants.ErrorMessage.ERROR_CODE_ERROR_LISTING_POLICIES);
+        }
+    }
+
+    private PolicyListItem toPolicyListItem(PolicyBasicInfo policy) {
+
+        return new PolicyListItem()
+                .id(policy.getId())
+                .name(policy.getName())
+                .self(ContextLoader.buildURIForBody(
+                        Constants.V1_API_PATH_COMPONENT + Constants.POLICY_PATH_COMPONENT
+                                + "/" + policy.getId()).toString());
+    }
+
+    private void validatePaginationParameters(int limit, int offset) {
+
+        if (limit < 1 || offset < 0) {
+            throw PolicyManagementAPIErrorBuilder.handleException(Response.Status.BAD_REQUEST,
+                    Constants.ErrorMessage.ERROR_CODE_INVALID_PAGINATION);
         }
     }
 
@@ -166,7 +217,8 @@ public class PolicyService {
             List<FieldDefinition> allFields = PolicyServiceHolder.getRuleMetadataService()
                     .getExpressionMeta(FlowType.DEVICE_POLICY, tenantDomain);
 
-            Map<String, List<String>> applicablePlatforms = loadApplicablePlatformsMap();
+            Map<String, List<String>> applicablePlatforms =
+                    PolicyServiceHolder.getDeviceFieldMetadataService().getFieldApplicablePlatforms();
 
             return allFields.stream()
                     .filter(fd -> isApplicable(fd.getField().getName(), platform, applicablePlatforms))
@@ -188,60 +240,19 @@ public class PolicyService {
         return platforms == null || platforms.contains(platform);
     }
 
-    private Map<String, List<String>> loadApplicablePlatformsMap() {
-
-        String filePath = System.getProperty("carbon.home") + File.separator + DEVICE_FIELDS_CONFIG_PATH;
-        File file = new File(filePath);
-        if (!file.exists()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("device-fields.json not found at: " + filePath + ". No platform filtering applied.");
-            }
-            return Collections.emptyMap();
-        }
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(file);
-            List<Map<String, Object>> fields = mapper.convertValue(root.get("fields"),
-                    new TypeReference<List<Map<String, Object>>>() { });
-            Map<String, List<String>> result = new HashMap<>();
-            for (Map<String, Object> entry : fields) {
-                String name = (String) entry.get("name");
-                Object platforms = entry.get("applicablePlatforms");
-                if (name != null && platforms != null) {
-                    result.put(name, mapper.convertValue(platforms,
-                            new TypeReference<List<String>>() { }));
-                }
-            }
-            return result;
-        } catch (Exception e) {
-            LOG.error("Failed to read device-fields.json for platform filtering.", e);
-            return Collections.emptyMap();
-        }
-    }
-
     private Map<String, String> loadFieldDisplayNamesMap() {
 
-        String filePath = System.getProperty("carbon.home") + File.separator + DEVICE_FIELDS_CONFIG_PATH;
-        File file = new File(filePath);
-        if (!file.exists()) {
-            return Collections.emptyMap();
-        }
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(file);
-            List<Map<String, Object>> fields = mapper.convertValue(root.get("fields"),
-                    new TypeReference<List<Map<String, Object>>>() { });
+            String tenantDomain = ContextLoader.getTenantDomainFromContext();
+            List<FieldDefinition> fields = PolicyServiceHolder.getRuleMetadataService()
+                    .getExpressionMeta(FlowType.DEVICE_POLICY, tenantDomain);
             Map<String, String> result = new HashMap<>();
-            for (Map<String, Object> entry : fields) {
-                String name = (String) entry.get("name");
-                String displayName = (String) entry.get("displayName");
-                if (name != null && displayName != null) {
-                    result.put(name, displayName);
-                }
+            for (FieldDefinition fd : fields) {
+                result.put(fd.getField().getName(), fd.getField().getDisplayName());
             }
             return result;
-        } catch (Exception e) {
-            LOG.error("Failed to read device-fields.json for display names.", e);
+        } catch (RuleMetadataException e) {
+            LOG.error("Failed to retrieve field display names from rule metadata.", e);
             return Collections.emptyMap();
         }
     }

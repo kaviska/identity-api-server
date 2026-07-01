@@ -45,6 +45,8 @@ import java.util.stream.Collectors;
  */
 public class PolicyRequestToPolicy implements Function<PolicyRequest, Policy> {
 
+    private static final String OPERATOR_IN = "in";
+
     private final String policyId;
 
     public PolicyRequestToPolicy() {
@@ -83,24 +85,16 @@ public class PolicyRequestToPolicy implements Function<PolicyRequest, Policy> {
 
     private Rule buildRule(RuleRequest ruleRequest) {
 
-        List<Expression> expressions = ruleRequest.getExpressions().stream()
-                .map(this::buildExpression)
-                .collect(Collectors.toList());
-
-        if (RuleRequest.ConditionEnum.AND.equals(ruleRequest.getCondition())) {
-            ANDCombinedRule andRule = new ANDCombinedRule.Builder()
-                    .setExpressions(expressions)
-                    .build();
-            return new ORCombinedRule.Builder()
-                    .addRule(andRule)
-                    .build();
-        }
-
-        // OR: each expression becomes its own AND-group inside the ORCombinedRule
-        List<ANDCombinedRule> andRules = expressions.stream()
-                .map(expr -> new ANDCombinedRule.Builder()
-                        .addExpression(expr)
-                        .build())
+        // Each AND sub-rule maps to an ANDCombinedRule; all sub-rules are OR-combined.
+        List<ANDCombinedRule> andRules = ruleRequest.getRules().stream()
+                .map(andRuleRequest -> {
+                    List<Expression> expressions = andRuleRequest.getExpressions().stream()
+                            .map(this::buildExpression)
+                            .collect(Collectors.toList());
+                    return new ANDCombinedRule.Builder()
+                            .setExpressions(expressions)
+                            .build();
+                })
                 .collect(Collectors.toList());
         return new ORCombinedRule.Builder()
                 .setRules(andRules)
@@ -113,7 +107,7 @@ public class PolicyRequestToPolicy implements Function<PolicyRequest, Policy> {
                 .field(expressionRequest.getField())
                 .operator(expressionRequest.getOperator());
 
-        if ("in".equals(expressionRequest.getOperator())) {
+        if (OPERATOR_IN.equals(expressionRequest.getOperator())) {
             builder.value(new Value(Value.Type.LIST, expressionRequest.getValue()));
         } else {
             builder.value(expressionRequest.getValue());

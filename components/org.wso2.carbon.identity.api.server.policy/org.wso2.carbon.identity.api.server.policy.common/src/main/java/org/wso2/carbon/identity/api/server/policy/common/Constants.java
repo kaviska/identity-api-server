@@ -25,9 +25,11 @@ public class Constants {
 
     private Constants() {}
 
-    public static final String DEVICE_POLICY_ERROR_PREFIX = "PM-";
+    public static final String POLICY_ERROR_PREFIX = "PM-";
 
-    // Path component used when building Location URIs for created policies.
+    public static final String V1_API_PATH_COMPONENT = "/v1";
+
+    // Path component for building policy resource URIs.
     public static final String POLICY_PATH_COMPONENT = "/policies";
 
     /**
@@ -38,6 +40,10 @@ public class Constants {
         ERROR_CODE_POLICY_NOT_FOUND("60001",
                 "Policy not found.",
                 "No policy found for the given policy id: %s."),
+
+        ERROR_CODE_INVALID_PAGINATION("60002",
+                "Invalid pagination parameters.",
+                "The 'limit' must be greater than or equal to 1 and 'offset' must be greater than or equal to 0."),
 
         ERROR_CODE_ERROR_ADDING_POLICY("65001",
                 "Unable to add policy.",
@@ -76,7 +82,7 @@ public class Constants {
 
         public String getCode() {
 
-            return DEVICE_POLICY_ERROR_PREFIX + code;
+            return POLICY_ERROR_PREFIX + code;
         }
 
         public String getMessage() {

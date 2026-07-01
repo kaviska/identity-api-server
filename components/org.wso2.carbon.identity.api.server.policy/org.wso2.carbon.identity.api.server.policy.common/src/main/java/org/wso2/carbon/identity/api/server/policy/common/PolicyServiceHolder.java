@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.api.server.policy.common;
 
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.device.policy.api.service.DeviceFieldMetadataService;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
@@ -41,6 +42,12 @@ public class PolicyServiceHolder {
                 .getThreadLocalCarbonContext().getOSGiService(RuleMetadataService.class, null);
     }
 
+    private static class DeviceFieldMetadataServiceHolder {
+
+        static final DeviceFieldMetadataService SERVICE = (DeviceFieldMetadataService) PrivilegedCarbonContext
+                .getThreadLocalCarbonContext().getOSGiService(DeviceFieldMetadataService.class, null);
+    }
+
     /**
      * Returns the PolicyManagementService OSGi service.
      */
@@ -55,5 +62,13 @@ public class PolicyServiceHolder {
     public static RuleMetadataService getRuleMetadataService() {
 
         return RuleMetadataServiceHolder.SERVICE;
+    }
+
+    /**
+     * Returns the DeviceFieldMetadataService OSGi service.
+     */
+    public static DeviceFieldMetadataService getDeviceFieldMetadataService() {
+
+        return DeviceFieldMetadataServiceHolder.SERVICE;
     }
 }

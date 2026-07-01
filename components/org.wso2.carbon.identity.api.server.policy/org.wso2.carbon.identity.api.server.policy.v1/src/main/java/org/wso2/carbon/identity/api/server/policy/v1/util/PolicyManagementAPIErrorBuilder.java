@@ -57,7 +57,15 @@ public class PolicyManagementAPIErrorBuilder {
                     .withMessage(errorEnum.getMessage())
                     .withDescription(e.getMessage())
                     .build(LOG, e.getMessage());
-            status = Response.Status.BAD_REQUEST;
+            if (org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage
+                    .ERROR_POLICY_ALREADY_EXISTS.getCode().equals(e.getErrorCode())) {
+                status = Response.Status.CONFLICT;
+            } else if (org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage
+                    .ERROR_POLICY_NOT_FOUND.getCode().equals(e.getErrorCode())) {
+                status = Response.Status.NOT_FOUND;
+            } else {
+                status = Response.Status.BAD_REQUEST;
+            }
         } else {
             errorResponse = new ErrorResponse.Builder()
                     .withCode(errorEnum.getCode())

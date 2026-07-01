@@ -31,7 +31,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtClientException;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtServerException;
-import org.wso2.carbon.identity.device.mgt.api.model.RegisteredDevice;
+import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
@@ -62,7 +62,7 @@ public class DeviceManagementApiService {
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            List<RegisteredDevice> devices = deviceManagementService.getAllDevices(tenantDomain);
+            List<Device> devices = deviceManagementService.getAllDevices(tenantDomain);
             return devices.stream().map(this::toDeviceResponse).collect(Collectors.toList());
         } catch (DeviceMgtException e) {
             throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_LISTING_DEVICES, null);
@@ -79,7 +79,7 @@ public class DeviceManagementApiService {
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            List<RegisteredDevice> devices = deviceManagementService.getDevicesByUserId(userId, tenantDomain);
+            List<Device> devices = deviceManagementService.getDevicesByUserId(userId, tenantDomain);
             return devices.stream().map(this::toDeviceResponse).collect(Collectors.toList());
         } catch (DeviceMgtException e) {
             throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_LISTING_DEVICES_BY_USER, userId);
@@ -96,7 +96,7 @@ public class DeviceManagementApiService {
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            RegisteredDevice device = deviceManagementService.getDeviceById(deviceId, tenantDomain);
+            Device device = deviceManagementService.getDeviceById(deviceId, tenantDomain);
             if (device == null) {
                 throw new APIError(Response.Status.NOT_FOUND, new ErrorResponse.Builder()
                         .withCode(Constants.ErrorMessage.ERROR_CODE_DEVICE_NOT_FOUND.code())
@@ -122,7 +122,7 @@ public class DeviceManagementApiService {
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            RegisteredDevice updated = deviceManagementService.updateDeviceName(
+            Device updated = deviceManagementService.updateDeviceName(
                     deviceId, patchRequest.getDeviceName(), tenantDomain);
             return toDeviceResponse(updated);
         } catch (DeviceMgtException e) {
@@ -145,7 +145,7 @@ public class DeviceManagementApiService {
         }
     }
 
-    private DeviceResponse toDeviceResponse(RegisteredDevice device) {
+    private DeviceResponse toDeviceResponse(Device device) {
 
         DeviceResponse response = new DeviceResponse();
         response.setId(device.getId());

@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.identity.api.server.flow.management.v1.constants.FlowEndpointConstants.Executors.DEVICE_REGISTRATION_EXECUTOR;
+import static org.wso2.carbon.identity.api.server.flow.management.v1.constants.FlowEndpointConstants.Executors.EMAIL_OTP_EXECUTOR;
+import static org.wso2.carbon.identity.api.server.flow.management.v1.constants.FlowEndpointConstants.Executors.SMS_OTP_EXECUTOR;
+import static org.wso2.carbon.identity.api.server.flow.management.v1.constants.FlowEndpointConstants.Executors.USER_RESOLVE_EXECUTOR;
 
 /**
  * Handler for managing the device registration flow meta information.
@@ -59,6 +62,9 @@ public class DeviceRegistrationFlowMetaHandler extends AbstractMetaResponseHandl
 
         List<String> executors = new ArrayList<>();
         executors.add(DEVICE_REGISTRATION_EXECUTOR);
+        executors.add(EMAIL_OTP_EXECUTOR);
+        executors.add(SMS_OTP_EXECUTOR);
+        executors.add(USER_RESOLVE_EXECUTOR);
         return executors;
     }
 }

@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyFieldDefinition;
 import org.wso2.carbon.identity.api.server.policy.v1.model.Error;
+import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListResponse;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyRequest;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyResponse;
 import org.wso2.carbon.identity.api.server.policy.v1.PoliciesApiService;
@@ -54,7 +55,7 @@ public class PoliciesApi  {
     
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @ApiOperation(value = "Create a device policy.", notes = "This API provides the capability to create a new device policy.", response = PolicyResponse.class, authorizations = {
+    @ApiOperation(value = "Create a policy.", notes = "This API provides the capability to create a new policy.", response = PolicyResponse.class, authorizations = {
         @Authorization(value = "BasicAuth"),
         @Authorization(value = "OAuth2", scopes = {
             
@@ -65,6 +66,7 @@ public class PoliciesApi  {
         @ApiResponse(code = 400, message = "Bad Request", response = Error.class),
         @ApiResponse(code = 401, message = "Unauthorized", response = Void.class),
         @ApiResponse(code = 403, message = "Forbidden", response = Void.class),
+        @ApiResponse(code = 409, message = "Conflict", response = Error.class),
         @ApiResponse(code = 500, message = "Server Error", response = Error.class)
     })
     public Response addPolicy(@ApiParam(value = "" ,required=true) @Valid PolicyRequest policyRequest) {
@@ -88,7 +90,6 @@ public class PoliciesApi  {
         @ApiResponse(code = 400, message = "Bad Request", response = Error.class),
         @ApiResponse(code = 401, message = "Unauthorized", response = Void.class),
         @ApiResponse(code = 403, message = "Forbidden", response = Void.class),
-        @ApiResponse(code = 404, message = "Not Found", response = Error.class),
         @ApiResponse(code = 500, message = "Server Error", response = Error.class)
     })
     public Response deletePolicy(@ApiParam(value = "ID of the device policy",required=true) @PathParam("policy-id") String policyId) {
@@ -101,21 +102,22 @@ public class PoliciesApi  {
     
     
     @Produces({ "application/json" })
-    @ApiOperation(value = "List all device policies.", notes = "This API provides the capability to retrieve all device policies for the tenant.", response = PolicyResponse.class, responseContainer = "List", authorizations = {
+    @ApiOperation(value = "List policies.", notes = "This API provides the capability to retrieve a paginated list of  policies for the tenant, optionally filtered by name.", response = PolicyListResponse.class, authorizations = {
         @Authorization(value = "BasicAuth"),
         @Authorization(value = "OAuth2", scopes = {
             
         })
     }, tags={ "Policy Management", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Successful Response", response = PolicyResponse.class, responseContainer = "List"),
+        @ApiResponse(code = 200, message = "Successful Response", response = PolicyListResponse.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = Error.class),
         @ApiResponse(code = 401, message = "Unauthorized", response = Void.class),
         @ApiResponse(code = 403, message = "Forbidden", response = Void.class),
         @ApiResponse(code = 500, message = "Server Error", response = Error.class)
     })
-    public Response getPolicies() {
+    public Response getPolicies(    @Valid @Min(1)@ApiParam(value = "Maximum number of records to return.", defaultValue="30") @DefaultValue("30")  @QueryParam("limit") Integer limit,     @Valid @Min(0)@ApiParam(value = "Number of records to skip for pagination.", defaultValue="0") @DefaultValue("0")  @QueryParam("offset") Integer offset,     @Valid@ApiParam(value = "Filter policies whose name contains the given value (case-insensitive). If omitted, all policies are returned.")  @QueryParam("filter") String filter) {
 
-        return delegate.getPolicies();
+        return delegate.getPolicies(limit,  offset,  filter );
     }
 
     @Valid
@@ -157,6 +159,7 @@ public class PoliciesApi  {
         @ApiResponse(code = 200, message = "Applicable fields for the given platform.", response = DevicePolicyFieldDefinition.class, responseContainer = "List"),
         @ApiResponse(code = 400, message = "Bad Request", response = Error.class),
         @ApiResponse(code = 401, message = "Unauthorized", response = Void.class),
+        @ApiResponse(code = 403, message = "Forbidden", response = Void.class),
         @ApiResponse(code = 500, message = "Server Error", response = Error.class)
     })
     public Response getPolicyMetadata(    @Valid@ApiParam(value = "Filter fields to those applicable for this platform. If omitted all fields are returned.", allowableValues="android, ios, macos, windows")  @QueryParam("platform") String platform) {

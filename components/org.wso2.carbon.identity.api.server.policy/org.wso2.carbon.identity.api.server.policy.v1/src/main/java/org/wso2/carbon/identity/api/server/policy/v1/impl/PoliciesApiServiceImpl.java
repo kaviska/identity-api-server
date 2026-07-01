@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.identity.api.server.policy.v1.impl;
 
+import org.wso2.carbon.identity.api.server.common.ContextLoader;
+import org.wso2.carbon.identity.api.server.policy.common.Constants;
 import org.wso2.carbon.identity.api.server.policy.v1.PoliciesApiService;
 import org.wso2.carbon.identity.api.server.policy.v1.core.PolicyService;
 import org.wso2.carbon.identity.api.server.policy.v1.factories.PolicyServiceFactory;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyRequest;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyResponse;
 
+import java.net.URI;
 import javax.ws.rs.core.Response;
 
 /**
@@ -31,12 +34,12 @@ import javax.ws.rs.core.Response;
  */
 public class PoliciesApiServiceImpl implements PoliciesApiService {
 
-    private final PolicyService devicePolicyService;
+    private final PolicyService policyService;
 
     public PoliciesApiServiceImpl() {
 
         try {
-            this.devicePolicyService = PolicyServiceFactory.getPolicyService();
+            this.policyService = PolicyServiceFactory.getPolicyService();
         } catch (IllegalStateException e) {
             throw new RuntimeException("Error occurred while initiating PolicyService.", e);
         }
@@ -45,40 +48,42 @@ public class PoliciesApiServiceImpl implements PoliciesApiService {
     @Override
     public Response addPolicy(PolicyRequest policyRequest) {
 
-        PolicyResponse policyResponse = devicePolicyService.addPolicy(policyRequest);
-        return Response.status(Response.Status.CREATED).entity(policyResponse).build();
+        PolicyResponse policyResponse = policyService.addPolicy(policyRequest);
+        URI location = ContextLoader.buildURIForHeader(
+                Constants.V1_API_PATH_COMPONENT + Constants.POLICY_PATH_COMPONENT + "/" + policyResponse.getId());
+        return Response.created(location).entity(policyResponse).build();
     }
 
     @Override
-    public Response getPolicies() {
+    public Response getPolicies(Integer limit, Integer offset, String filter) {
 
-        return Response.ok().entity(devicePolicyService.getPolicies()).build();
+        return Response.ok().entity(policyService.getPolicies(limit, offset, filter)).build();
     }
 
     @Override
     public Response getPolicyMetadata(String platform) {
 
-        return Response.ok().entity(devicePolicyService.getMetadata(platform)).build();
+        return Response.ok().entity(policyService.getMetadata(platform)).build();
     }
 
     @Override
     public Response deletePolicy(String policyId) {
 
-        devicePolicyService.deletePolicy(policyId);
+        policyService.deletePolicy(policyId);
         return Response.noContent().build();
     }
 
     @Override
     public Response getPolicyById(String policyId) {
 
-        PolicyResponse policyResponse = devicePolicyService.getPolicyById(policyId);
+        PolicyResponse policyResponse = policyService.getPolicyById(policyId);
         return Response.ok().entity(policyResponse).build();
     }
 
     @Override
     public Response updatePolicy(String policyId, PolicyRequest policyRequest) {
 
-        PolicyResponse policyResponse = devicePolicyService.updatePolicy(policyId, policyRequest);
+        PolicyResponse policyResponse = policyService.updatePolicy(policyId, policyRequest);
         return Response.ok().entity(policyResponse).build();
     }
 }

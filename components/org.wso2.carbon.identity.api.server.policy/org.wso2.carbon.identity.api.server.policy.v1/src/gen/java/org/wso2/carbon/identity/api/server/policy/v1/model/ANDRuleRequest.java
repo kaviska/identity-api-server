@@ -24,26 +24,26 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.ArrayList;
 import java.util.List;
-import org.wso2.carbon.identity.api.server.policy.v1.model.ANDRuleRequest;
+import org.wso2.carbon.identity.api.server.policy.v1.model.ExpressionRequest;
 import javax.validation.constraints.*;
 
 /**
- * A rule that combines one or more AND-grouped sub-rules with an OR condition; the rule is satisfied when any sub-rule is satisfied.
+ * A sub-rule that combines expressions with an AND condition; satisfied only when all of its expressions evaluate to true.
  **/
 
 import io.swagger.annotations.*;
 import java.util.Objects;
 import javax.validation.Valid;
 import javax.xml.bind.annotation.*;
-@ApiModel(description = "A rule that combines one or more AND-grouped sub-rules with an OR condition; the rule is satisfied when any sub-rule is satisfied.")
-public class RuleRequest  {
+@ApiModel(description = "A sub-rule that combines expressions with an AND condition; satisfied only when all of its expressions evaluate to true.")
+public class ANDRuleRequest  {
   
 
 @XmlType(name="ConditionEnum")
 @XmlEnum(String.class)
 public enum ConditionEnum {
 
-    @XmlEnumValue("OR") OR(String.valueOf("OR"));
+    @XmlEnumValue("AND") AND(String.valueOf("AND"));
 
 
     private String value;
@@ -72,21 +72,23 @@ public enum ConditionEnum {
 }
 
     private ConditionEnum condition;
-    private List<ANDRuleRequest> rules = new ArrayList<>();
+    private List<ExpressionRequest> expressions = new ArrayList<>();
 
 
     /**
-    * The logical operator combining the sub-rules. Always \&quot;OR\&quot;.
+    * The logical operator combining the expressions. Always \&quot;AND\&quot;.
     **/
-    public RuleRequest condition(ConditionEnum condition) {
+    public ANDRuleRequest condition(ConditionEnum condition) {
 
         this.condition = condition;
         return this;
     }
     
-    @ApiModelProperty(example = "OR", value = "The logical operator combining the sub-rules. Always \"OR\".")
+    @ApiModelProperty(example = "AND", required = true, value = "The logical operator combining the expressions. Always \"AND\".")
     @JsonProperty("condition")
     @Valid
+    @NotNull(message = "Property condition cannot be null.")
+
     public ConditionEnum getCondition() {
         return condition;
     }
@@ -95,28 +97,28 @@ public enum ConditionEnum {
     }
 
     /**
-    * The AND-grouped sub-rules combined with OR.
+    * The list of expressions combined with AND.
     **/
-    public RuleRequest rules(List<ANDRuleRequest> rules) {
+    public ANDRuleRequest expressions(List<ExpressionRequest> expressions) {
 
-        this.rules = rules;
+        this.expressions = expressions;
         return this;
     }
     
-    @ApiModelProperty(required = true, value = "The AND-grouped sub-rules combined with OR.")
-    @JsonProperty("rules")
+    @ApiModelProperty(required = true, value = "The list of expressions combined with AND.")
+    @JsonProperty("expressions")
     @Valid
-    @NotNull(message = "Property rules cannot be null.")
+    @NotNull(message = "Property expressions cannot be null.")
  @Size(min=1)
-    public List<ANDRuleRequest> getRules() {
-        return rules;
+    public List<ExpressionRequest> getExpressions() {
+        return expressions;
     }
-    public void setRules(List<ANDRuleRequest> rules) {
-        this.rules = rules;
+    public void setExpressions(List<ExpressionRequest> expressions) {
+        this.expressions = expressions;
     }
 
-    public RuleRequest addRulesItem(ANDRuleRequest rulesItem) {
-        this.rules.add(rulesItem);
+    public ANDRuleRequest addExpressionsItem(ExpressionRequest expressionsItem) {
+        this.expressions.add(expressionsItem);
         return this;
     }
 
@@ -131,24 +133,24 @@ public enum ConditionEnum {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RuleRequest ruleRequest = (RuleRequest) o;
-        return Objects.equals(this.condition, ruleRequest.condition) &&
-            Objects.equals(this.rules, ruleRequest.rules);
+        ANDRuleRequest anDRuleRequest = (ANDRuleRequest) o;
+        return Objects.equals(this.condition, anDRuleRequest.condition) &&
+            Objects.equals(this.expressions, anDRuleRequest.expressions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(condition, rules);
+        return Objects.hash(condition, expressions);
     }
 
     @Override
     public String toString() {
 
         StringBuilder sb = new StringBuilder();
-        sb.append("class RuleRequest {\n");
+        sb.append("class ANDRuleRequest {\n");
         
         sb.append("    condition: ").append(toIndentedString(condition)).append("\n");
-        sb.append("    rules: ").append(toIndentedString(rules)).append("\n");
+        sb.append("    expressions: ").append(toIndentedString(expressions)).append("\n");
         sb.append("}");
         return sb.toString();
     }
