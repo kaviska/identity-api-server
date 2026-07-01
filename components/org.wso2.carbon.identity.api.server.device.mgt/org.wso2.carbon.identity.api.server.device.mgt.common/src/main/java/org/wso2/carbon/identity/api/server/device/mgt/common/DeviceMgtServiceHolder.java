@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.api.server.device.mgt.common;
 
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
-import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * Service holder for device management API — retrieves OSGi services from the Carbon context.
@@ -39,16 +38,5 @@ public class DeviceMgtServiceHolder {
 
         return (DeviceManagementService) PrivilegedCarbonContext
                 .getThreadLocalCarbonContext().getOSGiService(DeviceManagementService.class, null);
-    }
-
-    /**
-     * Returns the RealmService OSGi service.
-     *
-     * @return RealmService instance.
-     */
-    public static RealmService getRealmService() {
-
-        return (RealmService) PrivilegedCarbonContext
-                .getThreadLocalCarbonContext().getOSGiService(RealmService.class, null);
     }
 }

@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.server.common.error.APIError;
 import org.wso2.carbon.identity.api.server.common.error.ErrorResponse;
 import org.wso2.carbon.identity.api.server.policy.common.Constants;
+import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 
@@ -57,11 +58,9 @@ public class PolicyManagementAPIErrorBuilder {
                     .withMessage(errorEnum.getMessage())
                     .withDescription(e.getMessage())
                     .build(LOG, e.getMessage());
-            if (org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage
-                    .ERROR_POLICY_ALREADY_EXISTS.getCode().equals(e.getErrorCode())) {
+            if (ErrorMessage.ERROR_POLICY_ALREADY_EXISTS.getCode().equals(e.getErrorCode())) {
                 status = Response.Status.CONFLICT;
-            } else if (org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage
-                    .ERROR_POLICY_NOT_FOUND.getCode().equals(e.getErrorCode())) {
+            } else if (ErrorMessage.ERROR_POLICY_NOT_FOUND.getCode().equals(e.getErrorCode())) {
                 status = Response.Status.NOT_FOUND;
             } else {
                 status = Response.Status.BAD_REQUEST;

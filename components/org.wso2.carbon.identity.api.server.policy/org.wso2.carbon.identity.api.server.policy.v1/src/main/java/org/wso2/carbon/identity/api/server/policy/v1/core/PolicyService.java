@@ -38,8 +38,6 @@ import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListResponse;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyRequest;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyResponse;
 import org.wso2.carbon.identity.api.server.policy.v1.util.PolicyManagementAPIErrorBuilder;
-import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
@@ -133,13 +131,9 @@ public class PolicyService {
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
+            // The backend delete is idempotent: it silently no-ops when the policy does not exist,
+            // so no explicit not-found handling is needed here.
             policyManagementService.deletePolicy(policyId, tenantDomain);
-        } catch (PolicyManagementClientException e) {
-            if (ErrorMessage.ERROR_POLICY_NOT_FOUND.getCode().equals(e.getErrorCode())) {
-                return;
-            }
-            throw PolicyManagementAPIErrorBuilder.handleException(e,
-                    Constants.ErrorMessage.ERROR_CODE_ERROR_DELETING_POLICY);
         } catch (PolicyManagementException e) {
             throw PolicyManagementAPIErrorBuilder.handleException(e,
                     Constants.ErrorMessage.ERROR_CODE_ERROR_DELETING_POLICY);

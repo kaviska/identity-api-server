@@ -23,21 +23,30 @@ import org.wso2.carbon.identity.api.server.device.mgt.v1.core.DeviceManagementAp
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 
 /**
- * Factory for building DeviceManagementApiService with its OSGi dependencies.
+ * Factory class for DeviceManagementApiService.
+ * Gets the OSGi service from ServiceHolder and injects it into DeviceManagementApiService.
+ * Created once at startup — singleton pattern using static initializer.
  */
 public class DeviceServiceFactory {
+
+    private static final DeviceManagementApiService SERVICE;
+
+    static {
+        DeviceManagementService deviceManagementService =
+                DeviceMgtServiceHolder.getDeviceManagementService();
+
+        if (deviceManagementService == null) {
+            throw new IllegalStateException("DeviceManagementService is not available from OSGi context.");
+        }
+
+        SERVICE = new DeviceManagementApiService(deviceManagementService);
+    }
 
     private DeviceServiceFactory() {
     }
 
-    /**
-     * Creates a DeviceManagementApiService backed by the OSGi DeviceManagementService.
-     *
-     * @return DeviceManagementApiService instance.
-     */
     public static DeviceManagementApiService getDeviceManagementApiService() {
 
-        DeviceManagementService deviceManagementService = DeviceMgtServiceHolder.getDeviceManagementService();
-        return new DeviceManagementApiService(deviceManagementService);
+        return SERVICE;
     }
 }

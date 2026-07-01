@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,19 +18,27 @@
 
 package org.wso2.carbon.identity.api.server.device.mgt.v1;
 
+import org.wso2.carbon.identity.api.server.device.mgt.v1.*;
+import org.wso2.carbon.identity.api.server.device.mgt.v1.model.*;
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
+import org.apache.cxf.jaxrs.ext.multipart.Multipart;
+import java.io.InputStream;
+import java.util.List;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DevicePatchRequest;
-
+import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DeviceResponse;
+import org.wso2.carbon.identity.api.server.device.mgt.v1.model.Error;
 import javax.ws.rs.core.Response;
+
 
 public interface DevicesApiService {
 
-    Response listDevices();
+      public Response deleteDevice(String deviceId);
 
-    Response listDevicesByUserId(String userId);
+      public Response getDevice(String deviceId);
 
-    Response getDevice(String deviceId);
+      public Response listDevices();
 
-    Response updateDeviceName(String deviceId, DevicePatchRequest patchRequest);
+      public Response listDevicesByUserId(String userId);
 
-    Response deleteDevice(String deviceId);
+      public Response updateDeviceName(String deviceId, DevicePatchRequest devicePatchRequest);
 }

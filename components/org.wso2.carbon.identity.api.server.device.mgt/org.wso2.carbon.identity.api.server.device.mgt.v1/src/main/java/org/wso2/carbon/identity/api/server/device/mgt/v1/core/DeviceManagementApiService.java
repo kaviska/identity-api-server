@@ -24,16 +24,13 @@ import org.wso2.carbon.identity.api.server.common.ContextLoader;
 import org.wso2.carbon.identity.api.server.common.error.APIError;
 import org.wso2.carbon.identity.api.server.common.error.ErrorResponse;
 import org.wso2.carbon.identity.api.server.device.mgt.common.Constants;
-import org.wso2.carbon.identity.api.server.device.mgt.common.DeviceMgtServiceHolder;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DevicePatchRequest;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DeviceResponse;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtClientException;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
-import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtServerException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
-import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -150,7 +147,6 @@ public class DeviceManagementApiService {
         DeviceResponse response = new DeviceResponse();
         response.setId(device.getId());
         response.setUserId(device.getUserId());
-        response.setUserName(resolveUserName(device.getUserId()));
         response.setDeviceName(device.getDeviceName());
         response.setDeviceModel(device.getDeviceModel());
         response.setStatus(device.getStatus());
@@ -159,24 +155,6 @@ public class DeviceManagementApiService {
         }
         response.setMetadata(device.getMetadata());
         return response;
-    }
-
-    private String resolveUserName(String userId) {
-
-        try {
-            String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager)
-                    DeviceMgtServiceHolder.getRealmService()
-                            .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain))
-                            .getUserStoreManager();
-            String userName = userStoreManager.getUserNameFromUserID(userId);
-            return userName != null ? userName : userId;
-        } catch (Exception e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Failed to resolve username for userId: " + userId + ". Returning userId as fallback.");
-            }
-            return userId;
-        }
     }
 
     private APIError handleException(DeviceMgtException e, Constants.ErrorMessage errorEnum, String data) {
@@ -190,17 +168,9 @@ public class DeviceManagementApiService {
                     .withMessage(errorEnum.message())
                     .withDescription(e.getMessage())
                     .build(LOG, e.getMessage());
-            status = Response.Status.BAD_REQUEST;
-            if (e.getMessage() != null && e.getMessage().contains("not found")) {
-                status = Response.Status.NOT_FOUND;
-            }
-        } else if (e instanceof DeviceMgtServerException) {
-            errorResponse = new ErrorResponse.Builder()
-                    .withCode(errorEnum.code())
-                    .withMessage(errorEnum.message())
-                    .withDescription(errorEnum.description())
-                    .build(LOG, e, errorEnum.description());
-            status = Response.Status.INTERNAL_SERVER_ERROR;
+            status = ErrorMessage.ERROR_DEVICE_NOT_FOUND.getCode().equals(e.getErrorCode())
+                    ? Response.Status.NOT_FOUND
+                    : Response.Status.BAD_REQUEST;
         } else {
             errorResponse = new ErrorResponse.Builder()
                     .withCode(errorEnum.code())

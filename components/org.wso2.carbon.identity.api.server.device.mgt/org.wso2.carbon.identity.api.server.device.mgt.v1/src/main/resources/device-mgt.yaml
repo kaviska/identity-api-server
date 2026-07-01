@@ -222,10 +222,6 @@ components:
           type: string
           description: The user identifier who owns the device.
           example: "kaviska"
-        userName:
-          type: string
-          description: The username of the user who owns the device.
-          example: "john@example.com"
         deviceName:
           type: string
           description: The display name of the device.
@@ -240,7 +236,6 @@ components:
           example: "ACTIVE"
         registeredAt:
           type: string
-          format: date-time
           description: The timestamp when the device was registered.
           example: "2026-04-27T10:00:00.000Z"
         metadata:
@@ -254,6 +249,8 @@ components:
       properties:
         deviceName:
           type: string
+          minLength: 1
+          maxLength: 255
           description: The new display name for the device.
           example: "My Work Phone"
     Error:

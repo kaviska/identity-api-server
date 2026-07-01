@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,37 +19,83 @@
 package org.wso2.carbon.identity.api.server.device.mgt.v1.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import javax.validation.constraints.*;
 
+
+import io.swagger.annotations.*;
 import java.util.Objects;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.*;
 
-public class DevicePatchRequest {
-
+public class DevicePatchRequest  {
+  
     private String deviceName;
 
+    /**
+    * The new display name for the device.
+    **/
+    public DevicePatchRequest deviceName(String deviceName) {
+
+        this.deviceName = deviceName;
+        return this;
+    }
+    
     @ApiModelProperty(example = "My Work Phone", required = true, value = "The new display name for the device.")
     @JsonProperty("deviceName")
     @Valid
     @NotNull(message = "Property deviceName cannot be null.")
-    public String getDeviceName() { return deviceName; }
-    public void setDeviceName(String deviceName) { this.deviceName = deviceName; }
-    public DevicePatchRequest deviceName(String deviceName) { this.deviceName = deviceName; return this; }
+ @Size(min=1,max=255)
+    public String getDeviceName() {
+        return deviceName;
+    }
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
+    }
+
+
 
     @Override
     public boolean equals(java.lang.Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DevicePatchRequest that = (DevicePatchRequest) o;
-        return Objects.equals(this.deviceName, that.deviceName);
+
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DevicePatchRequest devicePatchRequest = (DevicePatchRequest) o;
+        return Objects.equals(this.deviceName, devicePatchRequest.deviceName);
     }
 
     @Override
-    public int hashCode() { return Objects.hash(deviceName); }
+    public int hashCode() {
+        return Objects.hash(deviceName);
+    }
 
     @Override
     public String toString() {
-        return "class DevicePatchRequest {\n    deviceName: " + deviceName + "\n}";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("class DevicePatchRequest {\n");
+        
+        sb.append("    deviceName: ").append(toIndentedString(deviceName)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+    * Convert the given object to string with each line indented by 4 spaces
+    * (except the first line).
+    */
+    private String toIndentedString(java.lang.Object o) {
+
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n");
     }
 }
+
