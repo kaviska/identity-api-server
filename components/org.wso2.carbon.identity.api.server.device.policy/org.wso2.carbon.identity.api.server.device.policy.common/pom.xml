@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -21,22 +21,23 @@
 
     <parent>
         <groupId>org.wso2.carbon.identity.server.api</groupId>
-        <artifactId>org.wso2.carbon.identity.api.server.policy</artifactId>
+        <artifactId>org.wso2.carbon.identity.api.server.device.policy</artifactId>
         <version>1.5.3-SNAPSHOT</version>
     </parent>
 
-    <artifactId>org.wso2.carbon.identity.api.server.policy.common</artifactId>
+    <artifactId>org.wso2.carbon.identity.api.server.device.policy.common</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.policy.management</artifactId>
+            <artifactId>org.wso2.carbon.identity.rule.metadata</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.rule.metadata</artifactId>
+            <artifactId>org.wso2.carbon.identity.device.policy</artifactId>
+            <version>${carbon.identity.framework.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

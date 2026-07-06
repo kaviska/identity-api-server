@@ -16,24 +16,18 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.api.server.policy.common;
+package org.wso2.carbon.identity.api.server.device.policy.common;
 
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
+import org.wso2.carbon.identity.device.policy.api.service.DeviceFieldMetadataService;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
 /**
- * Service holder for device policy API — retrieves OSGi services from the Carbon context.
+ * Service holder for the device policy API — retrieves OSGi services from the Carbon context.
  */
-public class PolicyServiceHolder {
+public class DevicePolicyMetadataServiceHolder {
 
-    private PolicyServiceHolder() {}
-
-    private static class PolicyManagementServiceHolder {
-
-        static final PolicyManagementService SERVICE = (PolicyManagementService) PrivilegedCarbonContext
-                .getThreadLocalCarbonContext().getOSGiService(PolicyManagementService.class, null);
-    }
+    private DevicePolicyMetadataServiceHolder() {}
 
     private static class RuleMetadataServiceHolder {
 
@@ -41,12 +35,10 @@ public class PolicyServiceHolder {
                 .getThreadLocalCarbonContext().getOSGiService(RuleMetadataService.class, null);
     }
 
-    /**
-     * Returns the PolicyManagementService OSGi service.
-     */
-    public static PolicyManagementService getPolicyManagementService() {
+    private static class DeviceFieldMetadataServiceHolder {
 
-        return PolicyManagementServiceHolder.SERVICE;
+        static final DeviceFieldMetadataService SERVICE = (DeviceFieldMetadataService) PrivilegedCarbonContext
+                .getThreadLocalCarbonContext().getOSGiService(DeviceFieldMetadataService.class, null);
     }
 
     /**
@@ -55,5 +47,13 @@ public class PolicyServiceHolder {
     public static RuleMetadataService getRuleMetadataService() {
 
         return RuleMetadataServiceHolder.SERVICE;
+    }
+
+    /**
+     * Returns the DeviceFieldMetadataService OSGi service.
+     */
+    public static DeviceFieldMetadataService getDeviceFieldMetadataService() {
+
+        return DeviceFieldMetadataServiceHolder.SERVICE;
     }
 }

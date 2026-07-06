@@ -40,7 +40,7 @@ public class PolicyRequest  {
 
 
     /**
-    * The name of the device policy.
+    * The name of the policy.
     **/
     public PolicyRequest name(String name) {
 
@@ -48,7 +48,7 @@ public class PolicyRequest  {
         return this;
     }
     
-    @ApiModelProperty(example = "Corporate Device Policy", required = true, value = "The name of the device policy.")
+    @ApiModelProperty(example = "Corporate Policy", required = true, value = "The name of the policy.")
     @JsonProperty("name")
     @Valid
     @NotNull(message = "Property name cannot be null.")

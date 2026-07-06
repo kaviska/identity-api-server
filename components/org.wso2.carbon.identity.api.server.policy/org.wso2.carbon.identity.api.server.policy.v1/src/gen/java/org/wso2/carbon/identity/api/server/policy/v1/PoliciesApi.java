@@ -23,7 +23,6 @@ import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import java.io.InputStream;
 import java.util.List;
 
-import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyFieldDefinition;
 import org.wso2.carbon.identity.api.server.policy.v1.model.Error;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListResponse;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyRequest;
@@ -79,7 +78,7 @@ public class PoliciesApi  {
     @Path("/{policy-id}")
     
     @Produces({ "application/json" })
-    @ApiOperation(value = "Delete a device policy.", notes = "This API provides the capability to delete a device policy by ID.", response = Void.class, authorizations = {
+    @ApiOperation(value = "Delete a  policy.", notes = "This API provides the capability to delete a  policy by ID.", response = Void.class, authorizations = {
         @Authorization(value = "BasicAuth"),
         @Authorization(value = "OAuth2", scopes = {
             
@@ -92,7 +91,7 @@ public class PoliciesApi  {
         @ApiResponse(code = 403, message = "Forbidden", response = Void.class),
         @ApiResponse(code = 500, message = "Server Error", response = Error.class)
     })
-    public Response deletePolicy(@ApiParam(value = "ID of the device policy",required=true) @PathParam("policy-id") String policyId) {
+    public Response deletePolicy(@ApiParam(value = "ID of the  policy",required=true) @PathParam("policy-id") String policyId) {
 
         return delegate.deletePolicy(policyId );
     }
@@ -125,7 +124,7 @@ public class PoliciesApi  {
     @Path("/{policy-id}")
     
     @Produces({ "application/json" })
-    @ApiOperation(value = "Get a device policy by ID.", notes = "This API provides the capability to retrieve a device policy by ID.", response = PolicyResponse.class, authorizations = {
+    @ApiOperation(value = "Get a  policy by ID.", notes = "This API provides the capability to retrieve a policy by ID.", response = PolicyResponse.class, authorizations = {
         @Authorization(value = "BasicAuth"),
         @Authorization(value = "OAuth2", scopes = {
             
@@ -139,32 +138,9 @@ public class PoliciesApi  {
         @ApiResponse(code = 404, message = "Not Found", response = Error.class),
         @ApiResponse(code = 500, message = "Server Error", response = Error.class)
     })
-    public Response getPolicyById(@ApiParam(value = "ID of the device policy",required=true) @PathParam("policy-id") String policyId) {
+    public Response getPolicyById(@ApiParam(value = "ID of the  policy",required=true) @PathParam("policy-id") String policyId) {
 
         return delegate.getPolicyById(policyId );
-    }
-
-    @Valid
-    @GET
-    @Path("/metadata")
-    
-    @Produces({ "application/json" })
-    @ApiOperation(value = "Get device policy field metadata filtered by platform.", notes = "Returns the list of rule fields applicable for the devicePolicy flow, optionally filtered to a specific platform. Used by the UI to populate the rule builder with platform-relevant fields only. ", response = DevicePolicyFieldDefinition.class, responseContainer = "List", authorizations = {
-        @Authorization(value = "BasicAuth"),
-        @Authorization(value = "OAuth2", scopes = {
-            
-        })
-    }, tags={ "Policy Management", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Applicable fields for the given platform.", response = DevicePolicyFieldDefinition.class, responseContainer = "List"),
-        @ApiResponse(code = 400, message = "Bad Request", response = Error.class),
-        @ApiResponse(code = 401, message = "Unauthorized", response = Void.class),
-        @ApiResponse(code = 403, message = "Forbidden", response = Void.class),
-        @ApiResponse(code = 500, message = "Server Error", response = Error.class)
-    })
-    public Response getPolicyMetadata(    @Valid@ApiParam(value = "Filter fields to those applicable for this platform. If omitted all fields are returned.", allowableValues="android, ios, macos, windows")  @QueryParam("platform") String platform) {
-
-        return delegate.getPolicyMetadata(platform );
     }
 
     @Valid
@@ -172,7 +148,7 @@ public class PoliciesApi  {
     @Path("/{policy-id}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @ApiOperation(value = "Update a device policy.", notes = "This API provides the capability to update an existing device policy.", response = PolicyResponse.class, authorizations = {
+    @ApiOperation(value = "Update a policy.", notes = "This API provides the capability to update an existing policy.", response = PolicyResponse.class, authorizations = {
         @Authorization(value = "BasicAuth"),
         @Authorization(value = "OAuth2", scopes = {
             
@@ -186,7 +162,7 @@ public class PoliciesApi  {
         @ApiResponse(code = 404, message = "Not Found", response = Error.class),
         @ApiResponse(code = 500, message = "Server Error", response = Error.class)
     })
-    public Response updatePolicy(@ApiParam(value = "ID of the device policy",required=true) @PathParam("policy-id") String policyId, @ApiParam(value = "" ,required=true) @Valid PolicyRequest policyRequest) {
+    public Response updatePolicy(@ApiParam(value = "ID of the policy",required=true) @PathParam("policy-id") String policyId, @ApiParam(value = "" ,required=true) @Valid PolicyRequest policyRequest) {
 
         return delegate.updatePolicy(policyId,  policyRequest );
     }

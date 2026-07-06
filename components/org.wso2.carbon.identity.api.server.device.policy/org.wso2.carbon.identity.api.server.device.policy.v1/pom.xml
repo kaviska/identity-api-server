@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -21,11 +21,11 @@
 
     <parent>
         <groupId>org.wso2.carbon.identity.server.api</groupId>
-        <artifactId>org.wso2.carbon.identity.api.server.policy</artifactId>
+        <artifactId>org.wso2.carbon.identity.api.server.device.policy</artifactId>
         <version>1.5.3-SNAPSHOT</version>
     </parent>
 
-    <artifactId>org.wso2.carbon.identity.api.server.policy.v1</artifactId>
+    <artifactId>org.wso2.carbon.identity.api.server.device.policy.v1</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -86,12 +86,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.server.api</groupId>
-            <artifactId>org.wso2.carbon.identity.api.server.policy.common</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.policy.management</artifactId>
+            <artifactId>org.wso2.carbon.identity.api.server.device.policy.common</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -100,8 +95,10 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.device.policy</artifactId>
+            <version>${carbon.identity.framework.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -117,13 +114,13 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/policy.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/device-policy.yaml</inputSpec>
                             <generatorName>org.wso2.carbon.codegen.CxfWso2Generator</generatorName>
                             <configOptions>
                                 <sourceFolder>src/gen/java</sourceFolder>
-                                <apiPackage>org.wso2.carbon.identity.api.server.policy.v1</apiPackage>
-                                <modelPackage>org.wso2.carbon.identity.api.server.policy.v1.model</modelPackage>
-                                <packageName>org.wso2.carbon.identity.api.server.policy.v1</packageName>
+                                <apiPackage>org.wso2.carbon.identity.api.server.device.policy.v1</apiPackage>
+                                <modelPackage>org.wso2.carbon.identity.api.server.device.policy.v1.model</modelPackage>
+                                <packageName>org.wso2.carbon.identity.api.server.device.policy.v1</packageName>
                                 <dateLibrary>java8</dateLibrary>
                                 <hideGenerationTimestamp>true</hideGenerationTimestamp>
                             </configOptions>

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.api.server.policy.v1.model;
+package org.wso2.carbon.identity.api.server.device.policy.v1.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -30,20 +30,20 @@ import java.util.Objects;
 import javax.validation.Valid;
 import javax.xml.bind.annotation.*;
 
-public class DevicePolicyValueObject  {
+public class DevicePolicyField  {
   
     private String name;
     private String displayName;
 
     /**
     **/
-    public DevicePolicyValueObject name(String name) {
+    public DevicePolicyField name(String name) {
 
         this.name = name;
         return this;
     }
     
-    @ApiModelProperty(example = "android", value = "")
+    @ApiModelProperty(example = "platform", value = "")
     @JsonProperty("name")
     @Valid
     public String getName() {
@@ -55,13 +55,13 @@ public class DevicePolicyValueObject  {
 
     /**
     **/
-    public DevicePolicyValueObject displayName(String displayName) {
+    public DevicePolicyField displayName(String displayName) {
 
         this.displayName = displayName;
         return this;
     }
     
-    @ApiModelProperty(example = "Android", value = "")
+    @ApiModelProperty(example = "platform", value = "")
     @JsonProperty("displayName")
     @Valid
     public String getDisplayName() {
@@ -82,9 +82,9 @@ public class DevicePolicyValueObject  {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DevicePolicyValueObject devicePolicyValueObject = (DevicePolicyValueObject) o;
-        return Objects.equals(this.name, devicePolicyValueObject.name) &&
-            Objects.equals(this.displayName, devicePolicyValueObject.displayName);
+        DevicePolicyField devicePolicyField = (DevicePolicyField) o;
+        return Objects.equals(this.name, devicePolicyField.name) &&
+            Objects.equals(this.displayName, devicePolicyField.displayName);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class DevicePolicyValueObject  {
     public String toString() {
 
         StringBuilder sb = new StringBuilder();
-        sb.append("class DevicePolicyValueObject {\n");
+        sb.append("class DevicePolicyField {\n");
         
         sb.append("    name: ").append(toIndentedString(name)).append("\n");
         sb.append("    displayName: ").append(toIndentedString(displayName)).append("\n");

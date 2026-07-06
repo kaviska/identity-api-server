@@ -37,7 +37,7 @@ public class PolicyListItem  {
     private String self;
 
     /**
-    * The device policy resource ID.
+    * The policy resource ID.
     **/
     public PolicyListItem id(String id) {
 
@@ -45,7 +45,7 @@ public class PolicyListItem  {
         return this;
     }
     
-    @ApiModelProperty(example = "74070bae-df8c-42bf-8754-5173c237c936", value = "The device policy resource ID.")
+    @ApiModelProperty(example = "74070bae-df8c-42bf-8754-5173c237c936", value = "The policy resource ID.")
     @JsonProperty("id")
     @Valid
     public String getId() {
@@ -56,7 +56,7 @@ public class PolicyListItem  {
     }
 
     /**
-    * The name of the device policy.
+    * The name of the policy.
     **/
     public PolicyListItem name(String name) {
 
@@ -64,7 +64,7 @@ public class PolicyListItem  {
         return this;
     }
     
-    @ApiModelProperty(example = "Corporate Device Policy", value = "The name of the device policy.")
+    @ApiModelProperty(example = "Corporate Device Policy", value = "The name of the policy.")
     @JsonProperty("name")
     @Valid
     public String getName() {
@@ -75,7 +75,7 @@ public class PolicyListItem  {
     }
 
     /**
-    * Location of the device policy resource.
+    * Location of the policy resource.
     **/
     public PolicyListItem self(String self) {
 
@@ -83,7 +83,7 @@ public class PolicyListItem  {
         return this;
     }
     
-    @ApiModelProperty(example = "/t/carbon.super/api/server/v1/policies/74070bae-df8c-42bf-8754-5173c237c936", value = "Location of the device policy resource.")
+    @ApiModelProperty(example = "/t/carbon.super/api/server/v1/policies/74070bae-df8c-42bf-8754-5173c237c936", value = "Location of the policy resource.")
     @JsonProperty("self")
     @Valid
     public String getSelf() {

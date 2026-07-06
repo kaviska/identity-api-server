@@ -26,12 +26,6 @@ import org.wso2.carbon.identity.api.server.policy.common.Constants;
 import org.wso2.carbon.identity.api.server.policy.common.PolicyServiceHolder;
 import org.wso2.carbon.identity.api.server.policy.v1.function.PolicyRequestToPolicy;
 import org.wso2.carbon.identity.api.server.policy.v1.function.PolicyToPolicyResponse;
-import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyField;
-import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyFieldDefinition;
-import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyLink;
-import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyOperator;
-import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyValue;
-import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyValueObject;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListItem;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListLink;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListResponse;
@@ -45,11 +39,7 @@ import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementSe
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.api.model.FlowType;
-import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
-import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
-import org.wso2.carbon.identity.rule.metadata.api.model.OptionsValue;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +48,7 @@ import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 
 /**
- * Core service for Device Policy API — handles CRUD operations and field metadata retrieval.
+ * Core service for the Policy API — handles policy CRUD operations.
  */
 public class PolicyService {
 
@@ -200,40 +190,6 @@ public class PolicyService {
         }
     }
 
-    /**
-     * Returns device policy field metadata, optionally filtered to a specific platform.
-     * Calls RuleMetadataService for field definitions and applies platform filter from device-fields.json.
-     */
-    public List<DevicePolicyFieldDefinition> getMetadata(String platform) {
-
-        try {
-            String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            List<FieldDefinition> allFields = PolicyServiceHolder.getRuleMetadataService()
-                    .getExpressionMeta(FlowType.DEVICE_POLICY, tenantDomain);
-
-            Map<String, List<String>> applicablePlatforms =
-                    PolicyServiceHolder.getDeviceFieldMetadataService().getFieldApplicablePlatforms();
-
-            return allFields.stream()
-                    .filter(fd -> isApplicable(fd.getField().getName(), platform, applicablePlatforms))
-                    .map(this::toApiModel)
-                    .collect(Collectors.toList());
-        } catch (RuleMetadataException e) {
-            throw PolicyManagementAPIErrorBuilder.handleException(Response.Status.INTERNAL_SERVER_ERROR,
-                    Constants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_METADATA, e);
-        }
-    }
-
-    private boolean isApplicable(String fieldName, String platform,
-                                 Map<String, List<String>> applicablePlatformsMap) {
-
-        if (platform == null) {
-            return true;
-        }
-        List<String> platforms = applicablePlatformsMap.get(fieldName);
-        return platforms == null || platforms.contains(platform);
-    }
-
     private Map<String, String> loadFieldDisplayNamesMap() {
 
         try {
@@ -249,63 +205,5 @@ public class PolicyService {
             LOG.error("Failed to retrieve field display names from rule metadata.", e);
             return Collections.emptyMap();
         }
-    }
-
-    private DevicePolicyFieldDefinition toApiModel(FieldDefinition fd) {
-
-        DevicePolicyField field = new DevicePolicyField();
-        field.setName(fd.getField().getName());
-        field.setDisplayName(fd.getField().getDisplayName());
-
-        List<DevicePolicyOperator> operators = new ArrayList<>();
-        for (org.wso2.carbon.identity.rule.metadata.api.model.Operator op : fd.getOperators()) {
-            DevicePolicyOperator apiOp = new DevicePolicyOperator();
-            apiOp.setName(op.getName());
-            apiOp.setDisplayName(op.getDisplayName());
-            operators.add(apiOp);
-        }
-
-        DevicePolicyValue value = new DevicePolicyValue();
-        org.wso2.carbon.identity.rule.metadata.api.model.Value coreValue = fd.getValue();
-        value.setInputType(DevicePolicyValue.InputTypeEnum.fromValue(
-                coreValue.getInputType().name().toLowerCase()));
-        value.setValueType(DevicePolicyValue.ValueTypeEnum.fromValue(
-                mapValueType(coreValue.getValueType())));
-
-        if (coreValue instanceof OptionsInputValue) {
-            List<DevicePolicyValueObject> values = new ArrayList<>();
-            for (OptionsValue ov : ((OptionsInputValue) coreValue).getValues()) {
-                DevicePolicyValueObject vo = new DevicePolicyValueObject();
-                vo.setName(ov.getName());
-                vo.setDisplayName(ov.getDisplayName());
-                values.add(vo);
-            }
-            value.setValues(values);
-        } else if (coreValue instanceof OptionsReferenceValue) {
-            List<DevicePolicyLink> links = new ArrayList<>();
-            for (org.wso2.carbon.identity.rule.metadata.api.model.Link l :
-                    ((OptionsReferenceValue) coreValue).getLinks()) {
-                DevicePolicyLink link = new DevicePolicyLink();
-                link.setHref(l.getHref());
-                link.setMethod(DevicePolicyLink.MethodEnum.fromValue(l.getMethod()));
-                link.setRel(DevicePolicyLink.RelEnum.fromValue(l.getRel()));
-                links.add(link);
-            }
-            value.setLinks(links);
-        }
-
-        DevicePolicyFieldDefinition result = new DevicePolicyFieldDefinition();
-        result.setField(field);
-        result.setOperators(operators);
-        result.setValue(value);
-        return result;
-    }
-
-    private String mapValueType(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType valueType) {
-
-        if (valueType == org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.DATE_TIME) {
-            return "date";
-        }
-        return valueType.name().toLowerCase();
     }
 }

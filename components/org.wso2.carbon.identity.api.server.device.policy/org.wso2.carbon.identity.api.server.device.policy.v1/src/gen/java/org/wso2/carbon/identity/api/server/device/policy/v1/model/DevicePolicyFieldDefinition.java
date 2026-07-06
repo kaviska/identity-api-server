@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.api.server.policy.v1.model;
+package org.wso2.carbon.identity.api.server.device.policy.v1.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -24,9 +24,9 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.ArrayList;
 import java.util.List;
-import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyField;
-import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyOperator;
-import org.wso2.carbon.identity.api.server.policy.v1.model.DevicePolicyValue;
+import org.wso2.carbon.identity.api.server.device.policy.v1.model.DevicePolicyField;
+import org.wso2.carbon.identity.api.server.device.policy.v1.model.DevicePolicyOperator;
+import org.wso2.carbon.identity.api.server.device.policy.v1.model.DevicePolicyValue;
 import javax.validation.constraints.*;
 
 

@@ -71,7 +71,7 @@ public enum ResourceTypeEnum {
     private RuleRequest rule;
 
     /**
-    * The selector value this resource applies to (e.g. device platform - android, ios, macos, windows).
+    * The selector value this resource applies to (e.g. platform - android, ios, macos, windows).
     **/
     public PolicyResourceRequest target(String target) {
 
@@ -79,7 +79,7 @@ public enum ResourceTypeEnum {
         return this;
     }
     
-    @ApiModelProperty(example = "ios", required = true, value = "The selector value this resource applies to (e.g. device platform - android, ios, macos, windows).")
+    @ApiModelProperty(example = "ios", required = true, value = "The selector value this resource applies to (e.g. platform - android, ios, macos, windows).")
     @JsonProperty("target")
     @Valid
     @NotNull(message = "Property target cannot be null.")

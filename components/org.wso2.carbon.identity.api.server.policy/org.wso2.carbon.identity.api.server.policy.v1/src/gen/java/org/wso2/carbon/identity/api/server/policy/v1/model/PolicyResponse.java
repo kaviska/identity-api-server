@@ -41,7 +41,7 @@ public class PolicyResponse  {
 
 
     /**
-    * The device policy resource ID.
+    * The policy resource ID.
     **/
     public PolicyResponse id(String id) {
 
@@ -49,7 +49,7 @@ public class PolicyResponse  {
         return this;
     }
     
-    @ApiModelProperty(example = "74070bae-df8c-42bf-8754-5173c237c936", required = true, value = "The device policy resource ID.")
+    @ApiModelProperty(example = "74070bae-df8c-42bf-8754-5173c237c936", required = true, value = "The policy resource ID.")
     @JsonProperty("id")
     @Valid
     @NotNull(message = "Property id cannot be null.")
@@ -62,7 +62,7 @@ public class PolicyResponse  {
     }
 
     /**
-    * The name of the device policy.
+    * The name of the policy.
     **/
     public PolicyResponse name(String name) {
 
@@ -70,7 +70,7 @@ public class PolicyResponse  {
         return this;
     }
     
-    @ApiModelProperty(example = "Corporate Device Policy", required = true, value = "The name of the device policy.")
+    @ApiModelProperty(example = "Corporate Device Policy", required = true, value = "The name of the policy.")
     @JsonProperty("name")
     @Valid
     @NotNull(message = "Property name cannot be null.")

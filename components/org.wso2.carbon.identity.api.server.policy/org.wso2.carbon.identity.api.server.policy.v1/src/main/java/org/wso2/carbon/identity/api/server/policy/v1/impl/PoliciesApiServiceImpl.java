@@ -61,12 +61,6 @@ public class PoliciesApiServiceImpl implements PoliciesApiService {
     }
 
     @Override
-    public Response getPolicyMetadata(String platform) {
-
-        return Response.ok().entity(policyService.getMetadata(platform)).build();
-    }
-
-    @Override
     public Response deletePolicy(String policyId) {
 
         policyService.deletePolicy(policyId);

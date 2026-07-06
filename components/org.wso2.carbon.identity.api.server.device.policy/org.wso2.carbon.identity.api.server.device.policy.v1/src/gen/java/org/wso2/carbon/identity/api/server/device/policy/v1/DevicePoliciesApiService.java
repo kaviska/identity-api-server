@@ -16,30 +16,20 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.api.server.policy.v1;
+package org.wso2.carbon.identity.api.server.device.policy.v1;
 
-import org.wso2.carbon.identity.api.server.policy.v1.*;
-import org.wso2.carbon.identity.api.server.policy.v1.model.*;
+import org.wso2.carbon.identity.api.server.device.policy.v1.*;
+import org.wso2.carbon.identity.api.server.device.policy.v1.model.*;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import java.io.InputStream;
 import java.util.List;
-import org.wso2.carbon.identity.api.server.policy.v1.model.Error;
-import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListResponse;
-import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyRequest;
-import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyResponse;
+import org.wso2.carbon.identity.api.server.device.policy.v1.model.DevicePolicyFieldDefinition;
+import org.wso2.carbon.identity.api.server.device.policy.v1.model.Error;
 import javax.ws.rs.core.Response;
 
 
-public interface PoliciesApiService {
+public interface DevicePoliciesApiService {
 
-      public Response addPolicy(PolicyRequest policyRequest);
-
-      public Response deletePolicy(String policyId);
-
-      public Response getPolicies(Integer limit, Integer offset, String filter);
-
-      public Response getPolicyById(String policyId);
-
-      public Response updatePolicy(String policyId, PolicyRequest policyRequest);
+      public Response getDevicePolicyMetadata(String platform);
 }
