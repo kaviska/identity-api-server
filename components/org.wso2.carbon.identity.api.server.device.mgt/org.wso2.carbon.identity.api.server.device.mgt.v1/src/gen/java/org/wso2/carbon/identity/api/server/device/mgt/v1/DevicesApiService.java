@@ -24,6 +24,7 @@ import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import java.io.InputStream;
 import java.util.List;
+import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DeviceListResponse;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DevicePatchRequest;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DeviceResponse;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.Error;
@@ -36,7 +37,7 @@ public interface DevicesApiService {
 
       public Response getDevice(String deviceId);
 
-      public Response listDevices();
+      public Response listDevices(Integer limit, Integer offset);
 
       public Response listDevicesByUserId(String userId);
 

@@ -28,6 +28,10 @@ public class Constants {
 
     public static final String DEVICE_MGT_ERROR_PREFIX = "DM-";
 
+    public static final String V1_API_PATH_COMPONENT = "/v1";
+
+    public static final String DEVICE_PATH_COMPONENT = "/devices";
+
     /**
      * Error messages for the device management API.
      */
@@ -36,6 +40,10 @@ public class Constants {
         ERROR_CODE_DEVICE_NOT_FOUND("60001",
                 "Device not found.",
                 "No device found for the given device id: %s."),
+
+        ERROR_CODE_INVALID_PAGINATION("60002",
+                "Invalid pagination parameters.",
+                "The 'limit' must be greater than or equal to 1 and 'offset' must be greater than or equal to 0."),
 
         ERROR_CODE_ERROR_LISTING_DEVICES("65001",
                 "Unable to list devices.",

@@ -20,16 +20,31 @@ paths:
         - Device Management
       summary: List all registered devices in the tenant.
       operationId: listDevices
-      description: This API provides the capability to list all registered devices for the tenant.
+      description: This API provides the capability to list a paginated set of registered devices for the tenant.
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of records to return.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 30
+        - name: offset
+          in: query
+          description: Number of records to skip for pagination.
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceResponse'
+                $ref: '#/components/schemas/DeviceListResponse'
         '401':
           description: Unauthorized
         '403':
@@ -211,6 +226,42 @@ components:
             write: internal_device_mgt_update
             delete: internal_device_mgt_delete
   schemas:
+    DeviceListResponse:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          description: Number of results that match the listing operation.
+          example: 42
+        startIndex:
+          type: integer
+          description: Index of the first element of the page, which will be equal to offset + 1.
+          example: 1
+        count:
+          type: integer
+          description: Number of elements in the returned page.
+          example: 10
+        devices:
+          type: array
+          description: Page of registered devices.
+          items:
+            $ref: '#/components/schemas/DeviceResponse'
+        links:
+          type: array
+          description: Pagination links (next/previous).
+          items:
+            $ref: '#/components/schemas/DeviceListLink'
+    DeviceListLink:
+      type: object
+      properties:
+        href:
+          type: string
+          description: Relative URL to the linked page.
+          example: "/t/carbon.super/api/server/v1/devices?offset=10&limit=10"
+        rel:
+          type: string
+          description: Relation to the current page.
+          example: "next"
     DeviceResponse:
       type: object
       properties:

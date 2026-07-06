@@ -21,9 +21,12 @@ package org.wso2.carbon.identity.api.server.device.mgt.v1.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.server.common.ContextLoader;
+import org.wso2.carbon.identity.api.server.common.Util;
 import org.wso2.carbon.identity.api.server.common.error.APIError;
 import org.wso2.carbon.identity.api.server.common.error.ErrorResponse;
 import org.wso2.carbon.identity.api.server.device.mgt.common.Constants;
+import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DeviceListLink;
+import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DeviceListResponse;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DevicePatchRequest;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DeviceResponse;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
@@ -42,6 +45,8 @@ import javax.ws.rs.core.Response;
 public class DeviceManagementApiService {
 
     private static final Log LOG = LogFactory.getLog(DeviceManagementApiService.class);
+    private static final int DEFAULT_LIMIT = 30;
+    private static final int DEFAULT_OFFSET = 0;
 
     private final DeviceManagementService deviceManagementService;
 
@@ -51,18 +56,53 @@ public class DeviceManagementApiService {
     }
 
     /**
-     * Returns all devices registered in the tenant.
+     * Returns a paginated set of devices registered in the tenant.
      *
-     * @return List of DeviceResponse.
+     * @param limit  Maximum number of records to return (defaults to 30 when null).
+     * @param offset Number of records to skip (defaults to 0 when null).
+     * @return Paginated device list response.
      */
-    public List<DeviceResponse> listDevices() {
+    public DeviceListResponse listDevices(Integer limit, Integer offset) {
+
+        int resolvedLimit = limit != null ? limit : DEFAULT_LIMIT;
+        int resolvedOffset = offset != null ? offset : DEFAULT_OFFSET;
+        validatePaginationParameters(resolvedLimit, resolvedOffset);
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            List<Device> devices = deviceManagementService.getAllDevices(tenantDomain);
-            return devices.stream().map(this::toDeviceResponse).collect(Collectors.toList());
+            int totalResults = deviceManagementService.getDeviceCount(tenantDomain);
+            List<Device> devices =
+                    deviceManagementService.getDevices(tenantDomain, resolvedOffset, resolvedLimit);
+
+            List<DeviceResponse> items = devices.stream()
+                    .map(this::toDeviceResponse)
+                    .collect(Collectors.toList());
+
+            List<DeviceListLink> links = Util.buildPaginationLinks(
+                            resolvedLimit, resolvedOffset, totalResults, Constants.DEVICE_PATH_COMPONENT)
+                    .entrySet().stream()
+                    .map(link -> new DeviceListLink().rel(link.getKey()).href(link.getValue()))
+                    .collect(Collectors.toList());
+
+            return new DeviceListResponse()
+                    .totalResults(totalResults)
+                    .startIndex(resolvedOffset + 1)
+                    .count(items.size())
+                    .devices(items)
+                    .links(links);
         } catch (DeviceMgtException e) {
             throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_LISTING_DEVICES, null);
+        }
+    }
+
+    private void validatePaginationParameters(int limit, int offset) {
+
+        if (limit < 1 || offset < 0) {
+            throw new APIError(Response.Status.BAD_REQUEST, new ErrorResponse.Builder()
+                    .withCode(Constants.ErrorMessage.ERROR_CODE_INVALID_PAGINATION.code())
+                    .withMessage(Constants.ErrorMessage.ERROR_CODE_INVALID_PAGINATION.message())
+                    .withDescription(Constants.ErrorMessage.ERROR_CODE_INVALID_PAGINATION.description())
+                    .build(LOG, "Invalid pagination parameters."));
         }
     }
 

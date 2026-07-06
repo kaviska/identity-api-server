@@ -38,9 +38,9 @@ public class DevicesApiServiceImpl implements DevicesApiService {
     }
 
     @Override
-    public Response listDevices() {
+    public Response listDevices(Integer limit, Integer offset) {
 
-        return Response.ok().entity(service.listDevices()).build();
+        return Response.ok().entity(service.listDevices(limit, offset)).build();
     }
 
     @Override

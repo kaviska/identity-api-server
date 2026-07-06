@@ -23,6 +23,7 @@ import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import java.io.InputStream;
 import java.util.List;
 
+import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DeviceListResponse;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DevicePatchRequest;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DeviceResponse;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.Error;
@@ -99,21 +100,21 @@ public class DevicesApi  {
     
     
     @Produces({ "application/json" })
-    @ApiOperation(value = "List all registered devices in the tenant.", notes = "This API provides the capability to list all registered devices for the tenant.", response = DeviceResponse.class, responseContainer = "List", authorizations = {
+    @ApiOperation(value = "List all registered devices in the tenant.", notes = "This API provides the capability to list a paginated set of registered devices for the tenant.", response = DeviceListResponse.class, authorizations = {
         @Authorization(value = "BasicAuth"),
         @Authorization(value = "OAuth2", scopes = {
             
         })
     }, tags={ "Device Management", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Successful Response", response = DeviceResponse.class, responseContainer = "List"),
+        @ApiResponse(code = 200, message = "Successful Response", response = DeviceListResponse.class),
         @ApiResponse(code = 401, message = "Unauthorized", response = Void.class),
         @ApiResponse(code = 403, message = "Forbidden", response = Void.class),
         @ApiResponse(code = 500, message = "Server Error", response = Error.class)
     })
-    public Response listDevices() {
+    public Response listDevices(    @Valid @Min(1)@ApiParam(value = "Maximum number of records to return.", defaultValue="30") @DefaultValue("30")  @QueryParam("limit") Integer limit,     @Valid @Min(0)@ApiParam(value = "Number of records to skip for pagination.", defaultValue="0") @DefaultValue("0")  @QueryParam("offset") Integer offset) {
 
-        return delegate.listDevices();
+        return delegate.listDevices(limit,  offset );
     }
 
     @Valid
