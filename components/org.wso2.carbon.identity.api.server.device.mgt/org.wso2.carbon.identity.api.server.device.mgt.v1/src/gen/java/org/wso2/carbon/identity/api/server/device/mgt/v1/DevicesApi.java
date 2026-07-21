@@ -54,7 +54,7 @@ public class DevicesApi  {
     @Path("/{device-id}")
     
     @Produces({ "application/json" })
-    @ApiOperation(value = "Delete a registered device.", notes = "This API provides the capability to delete a registered device by its ID.", response = Void.class, authorizations = {
+    @ApiOperation(value = "Delete a registered device.", notes = "This API provides the capability to delete a registered device by its ID.   <b>Scope (Permission) required:</b> ``internal_device_mgt_delete``  ", response = Void.class, authorizations = {
         @Authorization(value = "BasicAuth"),
         @Authorization(value = "OAuth2", scopes = {
             
@@ -77,7 +77,7 @@ public class DevicesApi  {
     @Path("/{device-id}")
     
     @Produces({ "application/json" })
-    @ApiOperation(value = "Get a registered device by ID.", notes = "This API provides the capability to retrieve a registered device by its ID.", response = DeviceResponse.class, authorizations = {
+    @ApiOperation(value = "Get a registered device by ID.", notes = "This API provides the capability to retrieve a registered device by its ID.   <b>Scope (Permission) required:</b> ``internal_device_mgt_view``  ", response = DeviceResponse.class, authorizations = {
         @Authorization(value = "BasicAuth"),
         @Authorization(value = "OAuth2", scopes = {
             
@@ -100,7 +100,7 @@ public class DevicesApi  {
     
     
     @Produces({ "application/json" })
-    @ApiOperation(value = "List all registered devices in the tenant.", notes = "This API provides the capability to list a paginated set of registered devices for the tenant.", response = DeviceListResponse.class, authorizations = {
+    @ApiOperation(value = "List all registered devices in the tenant.", notes = "This API provides the capability to list a paginated set of registered devices for the tenant.   <b>Scope (Permission) required:</b> ``internal_device_mgt_view``  ", response = DeviceListResponse.class, authorizations = {
         @Authorization(value = "BasicAuth"),
         @Authorization(value = "OAuth2", scopes = {
             
@@ -112,31 +112,9 @@ public class DevicesApi  {
         @ApiResponse(code = 403, message = "Forbidden", response = Void.class),
         @ApiResponse(code = 500, message = "Server Error", response = Error.class)
     })
-    public Response listDevices(    @Valid @Min(1)@ApiParam(value = "Maximum number of records to return.", defaultValue="30") @DefaultValue("30")  @QueryParam("limit") Integer limit,     @Valid @Min(0)@ApiParam(value = "Number of records to skip for pagination.", defaultValue="0") @DefaultValue("0")  @QueryParam("offset") Integer offset) {
+    public Response listDevices(    @Valid @Min(1)@ApiParam(value = "Maximum number of records to return.", defaultValue="30") @DefaultValue("30")  @QueryParam("limit") Integer limit,     @Valid @Min(0)@ApiParam(value = "Number of records to skip for pagination.", defaultValue="0") @DefaultValue("0")  @QueryParam("offset") Integer offset,     @Valid@ApiParam(value = "Filter devices by the ID of the user who registered them. Returns devices of any status. Pagination applies as usual.")  @QueryParam("userId") String userId) {
 
-        return delegate.listDevices(limit,  offset );
-    }
-
-    @Valid
-    @GET
-    @Path("/user/{user-id}")
-    
-    @Produces({ "application/json" })
-    @ApiOperation(value = "List all devices registered by a specific user.", notes = "This API provides the capability to list all registered devices for a specific user.", response = DeviceResponse.class, responseContainer = "List", authorizations = {
-        @Authorization(value = "BasicAuth"),
-        @Authorization(value = "OAuth2", scopes = {
-            
-        })
-    }, tags={ "Device Management", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Successful Response", response = DeviceResponse.class, responseContainer = "List"),
-        @ApiResponse(code = 401, message = "Unauthorized", response = Void.class),
-        @ApiResponse(code = 403, message = "Forbidden", response = Void.class),
-        @ApiResponse(code = 500, message = "Server Error", response = Error.class)
-    })
-    public Response listDevicesByUserId(@ApiParam(value = "UUID of the user",required=true) @PathParam("user-id") String userId) {
-
-        return delegate.listDevicesByUserId(userId );
+        return delegate.listDevices(limit,  offset,  userId );
     }
 
     @Valid
@@ -144,7 +122,7 @@ public class DevicesApi  {
     @Path("/{device-id}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @ApiOperation(value = "Rename a registered device.", notes = "This API provides the capability to update the display name of a registered device.", response = DeviceResponse.class, authorizations = {
+    @ApiOperation(value = "Rename a registered device.", notes = "This API provides the capability to update the display name of a registered device.   <b>Scope (Permission) required:</b> ``internal_device_mgt_update``  ", response = DeviceResponse.class, authorizations = {
         @Authorization(value = "BasicAuth"),
         @Authorization(value = "OAuth2", scopes = {
             

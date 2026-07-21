@@ -18,11 +18,7 @@
 
 package org.wso2.carbon.identity.api.server.device.policy.v1.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.server.common.ContextLoader;
-import org.wso2.carbon.identity.api.server.common.error.APIError;
-import org.wso2.carbon.identity.api.server.common.error.ErrorResponse;
 import org.wso2.carbon.identity.api.server.device.policy.common.Constants;
 import org.wso2.carbon.identity.api.server.device.policy.v1.model.DevicePolicyField;
 import org.wso2.carbon.identity.api.server.device.policy.v1.model.DevicePolicyFieldDefinition;
@@ -30,18 +26,26 @@ import org.wso2.carbon.identity.api.server.device.policy.v1.model.DevicePolicyLi
 import org.wso2.carbon.identity.api.server.device.policy.v1.model.DevicePolicyOperator;
 import org.wso2.carbon.identity.api.server.device.policy.v1.model.DevicePolicyValue;
 import org.wso2.carbon.identity.api.server.device.policy.v1.model.DevicePolicyValueObject;
+import org.wso2.carbon.identity.api.server.device.policy.v1.util.DevicePolicyAPIErrorBuilder;
 import org.wso2.carbon.identity.device.policy.api.service.DeviceFieldMetadataService;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.api.model.FlowType;
+import org.wso2.carbon.identity.rule.metadata.api.model.Link;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.Value;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 
@@ -51,7 +55,8 @@ import javax.ws.rs.core.Response;
  */
 public class DevicePolicyMetadataService {
 
-    private static final Log LOG = LogFactory.getLog(DevicePolicyMetadataService.class);
+    private static final Set<String> SUPPORTED_PLATFORMS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("android", "ios", "macos", "windows")));
 
     private final RuleMetadataService ruleMetadataService;
     private final DeviceFieldMetadataService deviceFieldMetadataService;
@@ -73,6 +78,11 @@ public class DevicePolicyMetadataService {
      */
     public List<DevicePolicyFieldDefinition> getMetadata(String platform) {
 
+        if (platform != null && !SUPPORTED_PLATFORMS.contains(platform)) {
+            throw DevicePolicyAPIErrorBuilder.handleException(Response.Status.BAD_REQUEST,
+                    Constants.ErrorMessage.ERROR_CODE_INVALID_PLATFORM);
+        }
+
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
             List<FieldDefinition> allFields =
@@ -86,11 +96,8 @@ public class DevicePolicyMetadataService {
                     .map(this::toApiModel)
                     .collect(Collectors.toList());
         } catch (RuleMetadataException e) {
-            throw new APIError(Response.Status.INTERNAL_SERVER_ERROR, new ErrorResponse.Builder()
-                    .withCode(Constants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_METADATA.code())
-                    .withMessage(Constants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_METADATA.message())
-                    .withDescription(Constants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_METADATA.description())
-                    .build(LOG, e, Constants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_METADATA.description()));
+            throw DevicePolicyAPIErrorBuilder.handleException(Response.Status.INTERNAL_SERVER_ERROR,
+                    Constants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_METADATA, e);
         }
     }
 
@@ -111,7 +118,7 @@ public class DevicePolicyMetadataService {
         field.setDisplayName(fd.getField().getDisplayName());
 
         List<DevicePolicyOperator> operators = new ArrayList<>();
-        for (org.wso2.carbon.identity.rule.metadata.api.model.Operator op : fd.getOperators()) {
+        for (Operator op : fd.getOperators()) {
             DevicePolicyOperator apiOp = new DevicePolicyOperator();
             apiOp.setName(op.getName());
             apiOp.setDisplayName(op.getDisplayName());
@@ -119,7 +126,7 @@ public class DevicePolicyMetadataService {
         }
 
         DevicePolicyValue value = new DevicePolicyValue();
-        org.wso2.carbon.identity.rule.metadata.api.model.Value coreValue = fd.getValue();
+        Value coreValue = fd.getValue();
         value.setInputType(DevicePolicyValue.InputTypeEnum.fromValue(
                 coreValue.getInputType().name().toLowerCase()));
         value.setValueType(DevicePolicyValue.ValueTypeEnum.fromValue(
@@ -136,8 +143,7 @@ public class DevicePolicyMetadataService {
             value.setValues(values);
         } else if (coreValue instanceof OptionsReferenceValue) {
             List<DevicePolicyLink> links = new ArrayList<>();
-            for (org.wso2.carbon.identity.rule.metadata.api.model.Link l :
-                    ((OptionsReferenceValue) coreValue).getLinks()) {
+            for (Link l : ((OptionsReferenceValue) coreValue).getLinks()) {
                 DevicePolicyLink link = new DevicePolicyLink();
                 link.setHref(l.getHref());
                 link.setMethod(DevicePolicyLink.MethodEnum.fromValue(l.getMethod()));
@@ -154,9 +160,9 @@ public class DevicePolicyMetadataService {
         return result;
     }
 
-    private String mapValueType(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType valueType) {
+    private String mapValueType(Value.ValueType valueType) {
 
-        if (valueType == org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.DATE_TIME) {
+        if (valueType == Value.ValueType.DATE_TIME) {
             return "date";
         }
         return valueType.name().toLowerCase();

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.api.server.device.mgt.v1.core;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.server.common.ContextLoader;
@@ -47,6 +48,7 @@ public class DeviceManagementApiService {
     private static final Log LOG = LogFactory.getLog(DeviceManagementApiService.class);
     private static final int DEFAULT_LIMIT = 30;
     private static final int DEFAULT_OFFSET = 0;
+    private static final int DEVICE_NAME_MAX_LENGTH = 255;
 
     private final DeviceManagementService deviceManagementService;
 
@@ -56,23 +58,26 @@ public class DeviceManagementApiService {
     }
 
     /**
-     * Returns a paginated set of devices registered in the tenant.
+     * Returns a paginated set of devices registered in the tenant, optionally filtered to a
+     * single user's devices. Returns devices of any status (ACTIVE or INACTIVE).
      *
      * @param limit  Maximum number of records to return (defaults to 30 when null).
      * @param offset Number of records to skip (defaults to 0 when null).
+     * @param userId ID of the user to filter devices by, or {@code null}/blank for no filtering.
      * @return Paginated device list response.
      */
-    public DeviceListResponse listDevices(Integer limit, Integer offset) {
+    public DeviceListResponse listDevices(Integer limit, Integer offset, String userId) {
 
         int resolvedLimit = limit != null ? limit : DEFAULT_LIMIT;
         int resolvedOffset = offset != null ? offset : DEFAULT_OFFSET;
+        String resolvedUserId = StringUtils.isNotBlank(userId) ? userId : null;
         validatePaginationParameters(resolvedLimit, resolvedOffset);
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            int totalResults = deviceManagementService.getDeviceCount(tenantDomain);
-            List<Device> devices =
-                    deviceManagementService.getDevices(tenantDomain, resolvedOffset, resolvedLimit);
+            int totalResults = deviceManagementService.getDeviceCount(tenantDomain, resolvedUserId);
+            List<Device> devices = deviceManagementService.getDevices(
+                    tenantDomain, resolvedOffset, resolvedLimit, resolvedUserId);
 
             List<DeviceResponse> items = devices.stream()
                     .map(this::toDeviceResponse)
@@ -103,23 +108,6 @@ public class DeviceManagementApiService {
                     .withMessage(Constants.ErrorMessage.ERROR_CODE_INVALID_PAGINATION.message())
                     .withDescription(Constants.ErrorMessage.ERROR_CODE_INVALID_PAGINATION.description())
                     .build(LOG, "Invalid pagination parameters."));
-        }
-    }
-
-    /**
-     * Returns all devices registered by a specific user.
-     *
-     * @param userId User UUID.
-     * @return List of DeviceResponse.
-     */
-    public List<DeviceResponse> listDevicesByUserId(String userId) {
-
-        try {
-            String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            List<Device> devices = deviceManagementService.getDevicesByUserId(userId, tenantDomain);
-            return devices.stream().map(this::toDeviceResponse).collect(Collectors.toList());
-        } catch (DeviceMgtException e) {
-            throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_LISTING_DEVICES_BY_USER, userId);
         }
     }
 
@@ -157,6 +145,8 @@ public class DeviceManagementApiService {
      */
     public DeviceResponse updateDeviceName(String deviceId, DevicePatchRequest patchRequest) {
 
+        validateDeviceName(patchRequest);
+
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
             Device updated = deviceManagementService.updateDeviceName(
@@ -164,6 +154,18 @@ public class DeviceManagementApiService {
             return toDeviceResponse(updated);
         } catch (DeviceMgtException e) {
             throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_UPDATING_DEVICE, deviceId);
+        }
+    }
+
+    private void validateDeviceName(DevicePatchRequest patchRequest) {
+
+        String deviceName = patchRequest != null ? patchRequest.getDeviceName() : null;
+        if (StringUtils.isBlank(deviceName) || deviceName.length() > DEVICE_NAME_MAX_LENGTH) {
+            throw new APIError(Response.Status.BAD_REQUEST, new ErrorResponse.Builder()
+                    .withCode(Constants.ErrorMessage.ERROR_CODE_INVALID_DEVICE_NAME.code())
+                    .withMessage(Constants.ErrorMessage.ERROR_CODE_INVALID_DEVICE_NAME.message())
+                    .withDescription(Constants.ErrorMessage.ERROR_CODE_INVALID_DEVICE_NAME.description())
+                    .build(LOG, "Invalid device name."));
         }
     }
 
@@ -189,7 +191,9 @@ public class DeviceManagementApiService {
         response.setUserId(device.getUserId());
         response.setDeviceName(device.getDeviceName());
         response.setDeviceModel(device.getDeviceModel());
-        response.setStatus(device.getStatus());
+        if (device.getStatus() != null) {
+            response.setStatus(device.getStatus().name());
+        }
         if (device.getRegisteredAt() != null) {
             response.setRegisteredAt(device.getRegisteredAt().toInstant().toString());
         }
@@ -203,10 +207,19 @@ public class DeviceManagementApiService {
         Response.Status status;
 
         if (e instanceof DeviceMgtClientException) {
+            String backendErrorCode = e.getErrorCode();
+            String errorCode;
+            if (backendErrorCode == null) {
+                errorCode = errorEnum.code();
+            } else if (backendErrorCode.startsWith(Constants.DEVICE_MGT_ERROR_PREFIX)) {
+                errorCode = backendErrorCode;
+            } else {
+                errorCode = Constants.DEVICE_MGT_ERROR_PREFIX + backendErrorCode;
+            }
             errorResponse = new ErrorResponse.Builder()
-                    .withCode(errorEnum.code())
-                    .withMessage(errorEnum.message())
-                    .withDescription(e.getMessage())
+                    .withCode(errorCode)
+                    .withMessage(e.getMessage())
+                    .withDescription(e.getDescription())
                     .build(LOG, e.getMessage());
             status = ErrorMessage.ERROR_DEVICE_NOT_FOUND.getCode().equals(e.getErrorCode())
                     ? Response.Status.NOT_FOUND

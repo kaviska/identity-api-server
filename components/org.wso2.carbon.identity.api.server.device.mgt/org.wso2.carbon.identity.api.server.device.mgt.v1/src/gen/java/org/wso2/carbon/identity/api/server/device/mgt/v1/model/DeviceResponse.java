@@ -136,7 +136,7 @@ public class DeviceResponse  {
     }
 
     /**
-    * The timestamp when the device was registered.
+    * The timestamp when the device was registered, in ISO-8601 format.
     **/
     public DeviceResponse registeredAt(String registeredAt) {
 
@@ -144,7 +144,7 @@ public class DeviceResponse  {
         return this;
     }
     
-    @ApiModelProperty(example = "2026-04-27T10:00:00.000Z", value = "The timestamp when the device was registered.")
+    @ApiModelProperty(example = "2026-04-27T10:00:00.000Z", value = "The timestamp when the device was registered, in ISO-8601 format.")
     @JsonProperty("registeredAt")
     @Valid
     public String getRegisteredAt() {
@@ -155,7 +155,7 @@ public class DeviceResponse  {
     }
 
     /**
-    * Additional metadata associated with the device.
+    * Additional non-sensitive metadata associated with the device.
     **/
     public DeviceResponse metadata(String metadata) {
 
@@ -163,7 +163,7 @@ public class DeviceResponse  {
         return this;
     }
     
-    @ApiModelProperty(example = "{\"osVersion\":\"17.0\",\"pushToken\":\"abc123\"}", value = "Additional metadata associated with the device.")
+    @ApiModelProperty(example = "{\"osVersion\":\"17.0\",\"deviceType\":\"mobile\",\"manufacturer\":\"Apple\"}", value = "Additional non-sensitive metadata associated with the device.")
     @JsonProperty("metadata")
     @Valid
     public String getMetadata() {

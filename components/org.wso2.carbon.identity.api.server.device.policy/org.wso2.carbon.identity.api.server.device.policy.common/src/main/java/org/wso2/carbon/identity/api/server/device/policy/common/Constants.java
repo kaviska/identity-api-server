@@ -37,6 +37,9 @@ public class Constants {
      */
     public enum ErrorMessage {
 
+        ERROR_CODE_INVALID_PLATFORM("60001",
+                "Invalid platform.",
+                "Supported platforms: android, ios, macos, windows."),
         ERROR_CODE_ERROR_RETRIEVING_METADATA("65001",
                 "Unable to retrieve device policy metadata.",
                 "Server encountered an error while retrieving device policy field metadata.");

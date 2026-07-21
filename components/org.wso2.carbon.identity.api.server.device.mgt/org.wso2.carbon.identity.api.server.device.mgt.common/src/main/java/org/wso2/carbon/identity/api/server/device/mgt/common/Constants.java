@@ -41,29 +41,29 @@ public class Constants {
                 "Device not found.",
                 "No device found for the given device id: %s."),
 
-        ERROR_CODE_INVALID_PAGINATION("60002",
+        ERROR_CODE_INVALID_PAGINATION("60101",
                 "Invalid pagination parameters.",
                 "The 'limit' must be greater than or equal to 1 and 'offset' must be greater than or equal to 0."),
 
-        ERROR_CODE_ERROR_LISTING_DEVICES("65001",
+        ERROR_CODE_INVALID_DEVICE_NAME("60102",
+                "Invalid device name.",
+                "Device name must be a non-blank string of at most 255 characters."),
+
+        ERROR_CODE_ERROR_LISTING_DEVICES("65101",
                 "Unable to list devices.",
                 "Server encountered an error while listing devices."),
 
-        ERROR_CODE_ERROR_RETRIEVING_DEVICE("65002",
+        ERROR_CODE_ERROR_RETRIEVING_DEVICE("65102",
                 "Unable to retrieve device.",
                 "Server encountered an error while retrieving the device."),
 
-        ERROR_CODE_ERROR_UPDATING_DEVICE("65003",
+        ERROR_CODE_ERROR_UPDATING_DEVICE("65103",
                 "Unable to update device.",
                 "Server encountered an error while updating the device."),
 
-        ERROR_CODE_ERROR_DELETING_DEVICE("65004",
+        ERROR_CODE_ERROR_DELETING_DEVICE("65104",
                 "Unable to delete device.",
-                "Server encountered an error while deleting the device."),
-
-        ERROR_CODE_ERROR_LISTING_DEVICES_BY_USER("65005",
-                "Unable to list devices for user.",
-                "Server encountered an error while listing devices for the given user.");
+                "Server encountered an error while deleting the device.");
 
         private final String code;
         private final String message;

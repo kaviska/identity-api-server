@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.api.server.flow.management.v1.response.handlers;
 
+import org.wso2.carbon.identity.api.server.flow.management.v1.constants.FlowEndpointConstants;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import java.util.List;
 import static org.wso2.carbon.identity.api.server.flow.management.v1.constants.FlowEndpointConstants.Executors.DEVICE_REGISTRATION_EXECUTOR;
 import static org.wso2.carbon.identity.api.server.flow.management.v1.constants.FlowEndpointConstants.Executors.EMAIL_OTP_EXECUTOR;
 import static org.wso2.carbon.identity.api.server.flow.management.v1.constants.FlowEndpointConstants.Executors.SMS_OTP_EXECUTOR;
+import static org.wso2.carbon.identity.api.server.flow.management.v1.constants.FlowEndpointConstants.Executors.USER_PROVISIONING_EXECUTOR;
 import static org.wso2.carbon.identity.api.server.flow.management.v1.constants.FlowEndpointConstants.Executors.USER_RESOLVE_EXECUTOR;
 
 /**
@@ -42,19 +44,15 @@ public class DeviceRegistrationFlowMetaHandler extends AbstractMetaResponseHandl
     @Override
     public String getAttributeProfile() {
 
-        return null;
-    }
-
-    @Override
-    public boolean getWorkflowEnabled() {
-
-        return false;
+        return FlowEndpointConstants.END_USER_ATTRIBUTE_PROFILE;
     }
 
     @Override
     public List<String> getRequiredInputFields() {
 
-        return new ArrayList<>();
+        List<String> fields = new ArrayList<>();
+        fields.add(FlowEndpointConstants.USERNAME_IDENTIFIER);
+        return fields;
     }
 
     @Override
@@ -65,6 +63,7 @@ public class DeviceRegistrationFlowMetaHandler extends AbstractMetaResponseHandl
         executors.add(EMAIL_OTP_EXECUTOR);
         executors.add(SMS_OTP_EXECUTOR);
         executors.add(USER_RESOLVE_EXECUTOR);
+        executors.add(USER_PROVISIONING_EXECUTOR);
         return executors;
     }
 }

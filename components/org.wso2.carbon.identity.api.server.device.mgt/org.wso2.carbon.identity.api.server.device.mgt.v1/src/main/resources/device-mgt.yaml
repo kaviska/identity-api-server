@@ -20,7 +20,8 @@ paths:
         - Device Management
       summary: List all registered devices in the tenant.
       operationId: listDevices
-      description: This API provides the capability to list a paginated set of registered devices for the tenant.
+      description: "This API provides the capability to list a paginated set of registered devices for the tenant.\n\n
+        <b>Scope (Permission) required:</b> ``internal_device_mgt_view``\n\n"
       parameters:
         - name: limit
           in: query
@@ -38,6 +39,12 @@ paths:
             type: integer
             minimum: 0
             default: 0
+        - name: userId
+          in: query
+          description: Filter devices by the ID of the user who registered them. Returns devices of any status. Pagination applies as usual.
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: Successful Response
@@ -55,46 +62,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /devices/user/{user-id}:
-    get:
-      tags:
-        - Device Management
-      summary: List all devices registered by a specific user.
-      operationId: listDevicesByUserId
-      description: This API provides the capability to list all registered devices for a specific user.
-      parameters:
-        - name: user-id
-          in: path
-          description: UUID of the user
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceResponse'
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
-        '500':
-          description: Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
   /devices/{device-id}:
     get:
       tags:
         - Device Management
       summary: Get a registered device by ID.
       operationId: getDevice
-      description: This API provides the capability to retrieve a registered device by its ID.
+      description: "This API provides the capability to retrieve a registered device by its ID.\n\n
+        <b>Scope (Permission) required:</b> ``internal_device_mgt_view``\n\n"
       parameters:
         - name: device-id
           in: path
@@ -130,7 +105,8 @@ paths:
         - Device Management
       summary: Rename a registered device.
       operationId: updateDeviceName
-      description: This API provides the capability to update the display name of a registered device.
+      description: "This API provides the capability to update the display name of a registered device.\n\n
+        <b>Scope (Permission) required:</b> ``internal_device_mgt_update``\n\n"
       parameters:
         - name: device-id
           in: path
@@ -178,7 +154,8 @@ paths:
         - Device Management
       summary: Delete a registered device.
       operationId: deleteDevice
-      description: This API provides the capability to delete a registered device by its ID.
+      description: "This API provides the capability to delete a registered device by its ID.\n\n
+        <b>Scope (Permission) required:</b> ``internal_device_mgt_delete``\n\n"
       parameters:
         - name: device-id
           in: path
@@ -287,12 +264,12 @@ components:
           example: "ACTIVE"
         registeredAt:
           type: string
-          description: The timestamp when the device was registered.
+          description: The timestamp when the device was registered, in ISO-8601 format.
           example: "2026-04-27T10:00:00.000Z"
         metadata:
           type: string
-          description: Additional metadata associated with the device.
-          example: "{\"osVersion\":\"17.0\",\"pushToken\":\"abc123\"}"
+          description: Additional non-sensitive metadata associated with the device.
+          example: "{\"osVersion\":\"17.0\",\"deviceType\":\"mobile\",\"manufacturer\":\"Apple\"}"
     DevicePatchRequest:
       type: object
       required:
