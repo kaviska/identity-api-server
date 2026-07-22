@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.api.server.common.Util;
 import org.wso2.carbon.identity.api.server.common.error.APIError;
 import org.wso2.carbon.identity.api.server.common.error.ErrorResponse;
 import org.wso2.carbon.identity.api.server.device.mgt.common.Constants;
+import org.wso2.carbon.identity.api.server.device.mgt.v1.function.DeviceResponseBuilder;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DeviceListLink;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DeviceListResponse;
 import org.wso2.carbon.identity.api.server.device.mgt.v1.model.DevicePatchRequest;
@@ -80,7 +81,7 @@ public class DeviceManagementApiService {
                     tenantDomain, resolvedOffset, resolvedLimit, resolvedUserId);
 
             List<DeviceResponse> items = devices.stream()
-                    .map(this::toDeviceResponse)
+                    .map(DeviceResponseBuilder::buildDeviceResponse)
                     .collect(Collectors.toList());
 
             List<DeviceListLink> links = Util.buildPaginationLinks(
@@ -130,7 +131,7 @@ public class DeviceManagementApiService {
                                 Constants.ErrorMessage.ERROR_CODE_DEVICE_NOT_FOUND.description(), deviceId))
                         .build(LOG, "Device not found for id: " + deviceId));
             }
-            return toDeviceResponse(device);
+            return DeviceResponseBuilder.buildDeviceResponse(device);
         } catch (DeviceMgtException e) {
             throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_DEVICE, deviceId);
         }
@@ -151,7 +152,7 @@ public class DeviceManagementApiService {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
             Device updated = deviceManagementService.updateDeviceName(
                     deviceId, patchRequest.getDeviceName(), tenantDomain);
-            return toDeviceResponse(updated);
+            return DeviceResponseBuilder.buildDeviceResponse(updated);
         } catch (DeviceMgtException e) {
             throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_UPDATING_DEVICE, deviceId);
         }
@@ -182,23 +183,6 @@ public class DeviceManagementApiService {
         } catch (DeviceMgtException e) {
             throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_DELETING_DEVICE, deviceId);
         }
-    }
-
-    private DeviceResponse toDeviceResponse(Device device) {
-
-        DeviceResponse response = new DeviceResponse();
-        response.setId(device.getId());
-        response.setUserId(device.getUserId());
-        response.setDeviceName(device.getDeviceName());
-        response.setDeviceModel(device.getDeviceModel());
-        if (device.getStatus() != null) {
-            response.setStatus(device.getStatus().name());
-        }
-        if (device.getRegisteredAt() != null) {
-            response.setRegisteredAt(device.getRegisteredAt().toInstant().toString());
-        }
-        response.setMetadata(device.getMetadata());
-        return response;
     }
 
     private APIError handleException(DeviceMgtException e, Constants.ErrorMessage errorEnum, String data) {
