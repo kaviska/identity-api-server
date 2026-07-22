@@ -18,32 +18,25 @@
 
 package org.wso2.carbon.identity.api.server.policy.v1.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.server.common.ContextLoader;
 import org.wso2.carbon.identity.api.server.common.Util;
 import org.wso2.carbon.identity.api.server.policy.common.Constants;
 import org.wso2.carbon.identity.api.server.policy.common.PolicyServiceHolder;
-import org.wso2.carbon.identity.api.server.policy.v1.function.PolicyRequestToPolicy;
-import org.wso2.carbon.identity.api.server.policy.v1.function.PolicyToPolicyResponse;
+import org.wso2.carbon.identity.api.server.policy.v1.function.PolicyBuilder;
+import org.wso2.carbon.identity.api.server.policy.v1.function.PolicyResponseBuilder;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListItem;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListLink;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListResponse;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyRequest;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyResponse;
+import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyUpdateRequest;
 import org.wso2.carbon.identity.api.server.policy.v1.util.PolicyManagementAPIErrorBuilder;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
-import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
-import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
-import org.wso2.carbon.identity.rule.metadata.api.model.FlowType;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 
@@ -52,9 +45,26 @@ import javax.ws.rs.core.Response;
  */
 public class PolicyService {
 
-    private static final Log LOG = LogFactory.getLog(PolicyService.class);
     private static final int DEFAULT_LIMIT = 30;
     private static final int DEFAULT_OFFSET = 0;
+
+    private static final PolicyService SERVICE;
+
+    static {
+        PolicyManagementService policyManagementService =
+                PolicyServiceHolder.getPolicyManagementService();
+
+        if (policyManagementService == null) {
+            throw new IllegalStateException("PolicyManagementService is not available from OSGi context.");
+        }
+
+        SERVICE = new PolicyService(policyManagementService);
+    }
+
+    public static PolicyService getPolicyService() {
+
+        return SERVICE;
+    }
 
     private final PolicyManagementService policyManagementService;
 
@@ -64,15 +74,18 @@ public class PolicyService {
     }
 
     /**
-     * Create a new device policy.
+     * Create a new policy.
+     *
+     * @param policyRequest Policy creation request.
+     * @return Created policy response.
      */
     public PolicyResponse addPolicy(PolicyRequest policyRequest) {
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            Policy policy = new PolicyRequestToPolicy().apply(policyRequest);
+            Policy policy = PolicyBuilder.buildPolicy(policyRequest, null, tenantDomain);
             Policy createdPolicy = policyManagementService.addPolicy(policy, tenantDomain);
-            return new PolicyToPolicyResponse().apply(createdPolicy);
+            return PolicyResponseBuilder.buildPolicyResponse(createdPolicy);
         } catch (PolicyManagementException e) {
             throw PolicyManagementAPIErrorBuilder.handleException(e,
                     Constants.ErrorMessage.ERROR_CODE_ERROR_ADDING_POLICY);
@@ -80,7 +93,10 @@ public class PolicyService {
     }
 
     /**
-     * Get a device policy by its ID.
+     * Get a policy by its ID.
+     *
+     * @param policyId ID of the policy to retrieve.
+     * @return Policy response.
      */
     public PolicyResponse getPolicyById(String policyId) {
 
@@ -91,7 +107,7 @@ public class PolicyService {
                 throw PolicyManagementAPIErrorBuilder.handleException(Response.Status.NOT_FOUND,
                         Constants.ErrorMessage.ERROR_CODE_POLICY_NOT_FOUND, policyId);
             }
-            return new PolicyToPolicyResponse(loadFieldDisplayNamesMap()).apply(policy);
+            return PolicyResponseBuilder.buildPolicyResponse(policy);
         } catch (PolicyManagementException e) {
             throw PolicyManagementAPIErrorBuilder.handleException(e,
                     Constants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_POLICY);
@@ -99,15 +115,19 @@ public class PolicyService {
     }
 
     /**
-     * Update an existing device policy.
+     * Update an existing policy.
+     *
+     * @param policyId            ID of the policy to update.
+     * @param policyUpdateRequest Policy update request.
+     * @return Updated policy response.
      */
-    public PolicyResponse updatePolicy(String policyId, PolicyRequest policyRequest) {
+    public PolicyResponse updatePolicy(String policyId, PolicyUpdateRequest policyUpdateRequest) {
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            Policy policy = new PolicyRequestToPolicy(policyId).apply(policyRequest);
+            Policy policy = PolicyBuilder.buildUpdatingPolicy(policyUpdateRequest, policyId, tenantDomain);
             Policy updatedPolicy = policyManagementService.updatePolicy(policy, tenantDomain);
-            return new PolicyToPolicyResponse().apply(updatedPolicy);
+            return PolicyResponseBuilder.buildPolicyResponse(updatedPolicy);
         } catch (PolicyManagementException e) {
             throw PolicyManagementAPIErrorBuilder.handleException(e,
                     Constants.ErrorMessage.ERROR_CODE_ERROR_UPDATING_POLICY);
@@ -115,14 +135,14 @@ public class PolicyService {
     }
 
     /**
-     * Delete a device policy by its ID.
+     * Delete a policy by its ID.
+     *
+     * @param policyId ID of the policy to delete.
      */
     public void deletePolicy(String policyId) {
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            // The backend delete is idempotent: it silently no-ops when the policy does not exist,
-            // so no explicit not-found handling is needed here.
             policyManagementService.deletePolicy(policyId, tenantDomain);
         } catch (PolicyManagementException e) {
             throw PolicyManagementAPIErrorBuilder.handleException(e,
@@ -131,7 +151,7 @@ public class PolicyService {
     }
 
     /**
-     * Get a paginated list of device policy summaries for the current tenant, optionally filtered by name.
+     * Get a paginated list of policy summaries for the current tenant, optionally filtered by name.
      *
      * @param limit  Maximum number of records to return (defaults to 30 when null).
      * @param offset Number of records to skip (defaults to 0 when null).
@@ -187,23 +207,6 @@ public class PolicyService {
         if (limit < 1 || offset < 0) {
             throw PolicyManagementAPIErrorBuilder.handleException(Response.Status.BAD_REQUEST,
                     Constants.ErrorMessage.ERROR_CODE_INVALID_PAGINATION);
-        }
-    }
-
-    private Map<String, String> loadFieldDisplayNamesMap() {
-
-        try {
-            String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            List<FieldDefinition> fields = PolicyServiceHolder.getRuleMetadataService()
-                    .getExpressionMeta(FlowType.DEVICE_POLICY, tenantDomain);
-            Map<String, String> result = new HashMap<>();
-            for (FieldDefinition fd : fields) {
-                result.put(fd.getField().getName(), fd.getField().getDisplayName());
-            }
-            return result;
-        } catch (RuleMetadataException e) {
-            LOG.error("Failed to retrieve field display names from rule metadata.", e);
-            return Collections.emptyMap();
         }
     }
 }

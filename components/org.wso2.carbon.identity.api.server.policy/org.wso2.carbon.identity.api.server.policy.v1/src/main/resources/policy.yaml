@@ -20,7 +20,7 @@ paths:
         - Policy Management
       summary: List policies.
       operationId: getPolicies
-      description: This API provides the capability to retrieve a paginated list of  policies for the tenant, optionally filtered by name.
+      description: This API provides the capability to retrieve a paginated list of policies for the tenant, optionally filtered by name.
       parameters:
         - name: limit
           in: query
@@ -112,13 +112,13 @@ paths:
     get:
       tags:
         - Policy Management
-      summary: Get a  policy by ID.
+      summary: Get a policy by ID.
       operationId: getPolicyById
       description: This API provides the capability to retrieve a policy by ID.
       parameters:
         - name: policy-id
           in: path
-          description: ID of the  policy
+          description: ID of the policy
           required: true
           schema:
             type: string
@@ -169,7 +169,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyRequest'
+              $ref: '#/components/schemas/PolicyUpdateRequest'
       responses:
         '200':
           description: Successful Response
@@ -202,13 +202,13 @@ paths:
     delete:
       tags:
         - Policy Management
-      summary: Delete a  policy.
+      summary: Delete a policy.
       operationId: deletePolicy
-      description: This API provides the capability to delete a  policy by ID.
+      description: This API provides the capability to delete a policy by ID.
       parameters:
         - name: policy-id
           in: path
-          description: ID of the  policy
+          description: ID of the policy
           required: true
           schema:
             type: string
@@ -261,7 +261,7 @@ components:
         - name
         - resources
       example:
-        name: "Corporate  Policy"
+        name: "Corporate Policy"
         resources:
           - target: "ios"
             resourceType: "RULE"
@@ -286,6 +286,16 @@ components:
           description: Resources attached to the policy. Each target may have at most one resource of each type.
           items:
             $ref: '#/components/schemas/PolicyResourceRequest'
+    PolicyUpdateRequest:
+      type: object
+      required:
+        - resources
+      properties:
+        resources:
+          type: array
+          description: Resources attached to the policy. Each target may have at most one resource of each type.
+          items:
+            $ref: '#/components/schemas/PolicyResourceRequest'
     PolicyResourceRequest:
       type: object
       required:
@@ -299,6 +309,7 @@ components:
         resourceType:
           type: string
           enum: [RULE, ACTION]
+          default: RULE
           description: The type of resource. Defaults to RULE. Only RULE is currently supported.
           example: "RULE"
         rule:
@@ -432,10 +443,6 @@ components:
     PolicyResourceResponse:
       type: object
       properties:
-        id:
-          type: string
-          description: The policy-resource association ID.
-          example: "pr-456"
         target:
           type: string
           description: The selector value this resource applies to (e.g. device platform).
@@ -445,10 +452,6 @@ components:
           enum: [RULE, ACTION]
           description: The type of resource.
           example: "RULE"
-        resourceId:
-          type: string
-          description: The ID of the attached resource (rule ID or action ID).
-          example: "rule-123"
         rule:
           $ref: '#/components/schemas/RuleResponse'
     RuleResponse:
@@ -474,10 +477,6 @@ components:
           type: string
           description: The field to evaluate.
           example: "platform"
-        displayName:
-          type: string
-          description: The human-readable display name of the field.
-          example: "Platform"
         operator:
           type: string
           description: The operator to apply.
