@@ -23,13 +23,14 @@ import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyRequest;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyResourceRequest;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyUpdateRequest;
 import org.wso2.carbon.identity.api.server.policy.v1.util.PolicyManagementAPIErrorBuilder;
+import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 
 /**
@@ -45,36 +46,51 @@ public class PolicyBuilder {
 
     }
 
-    public static Policy buildPolicy(PolicyRequest policyRequest, String policyId, String tenantDomain) {
+    public static Policy buildPolicy(PolicyRequest policyRequest, String policyId, String tenantDomain)
+            throws PolicyManagementClientException {
 
         List<PolicyResource> resources = buildPolicyResources(policyRequest.getResources(), tenantDomain);
-        return new Policy(policyId, policyRequest.getName(), null, resources);
+        return new Policy.Builder()
+                .id(policyId)
+                .name(policyRequest.getName())
+                .resources(resources)
+                .build();
     }
 
     public static Policy buildUpdatingPolicy(PolicyUpdateRequest policyUpdateRequest, String policyId,
-                                              String tenantDomain) {
+                                              String tenantDomain) throws PolicyManagementClientException {
 
         List<PolicyResource> resources = buildPolicyResources(policyUpdateRequest.getResources(), tenantDomain);
         // Policy name is immutable; the backend retains the stored name.
-        return new Policy(policyId, null, null, resources);
+        return new Policy.Builder()
+                .id(policyId)
+                .resources(resources)
+                .build();
     }
 
     private static List<PolicyResource> buildPolicyResources(List<PolicyResourceRequest> resourceRequests,
-                                                               String tenantDomain) {
+                                                               String tenantDomain)
+            throws PolicyManagementClientException {
 
         if (resourceRequests == null || resourceRequests.isEmpty()) {
             return Collections.emptyList();
         }
-        return resourceRequests.stream()
-                .map(resourceRequest -> toRulePolicyResource(resourceRequest, tenantDomain))
-                .collect(Collectors.toList());
+        // A loop is used rather than a stream because the resource builder raises a checked exception.
+        List<PolicyResource> resources = new ArrayList<>();
+        for (PolicyResourceRequest resourceRequest : resourceRequests) {
+            resources.add(toRulePolicyResource(resourceRequest, tenantDomain));
+        }
+        return resources;
     }
 
-    private static PolicyResource toRulePolicyResource(PolicyResourceRequest resourceRequest, String tenantDomain) {
+    private static PolicyResource toRulePolicyResource(PolicyResourceRequest resourceRequest, String tenantDomain)
+            throws PolicyManagementClientException {
 
         validateResourceType(resourceRequest.getResourceType());
-        return new RulePolicyResource(null, resourceRequest.getTarget(), null,
-                PolicyRuleBuilder.buildRule(resourceRequest.getRule(), tenantDomain));
+        return new RulePolicyResource.Builder()
+                .target(resourceRequest.getTarget())
+                .rule(PolicyRuleBuilder.buildRule(resourceRequest.getRule(), tenantDomain))
+                .build();
     }
 
     private static void validateResourceType(PolicyResourceRequest.ResourceTypeEnum resourceType) {
