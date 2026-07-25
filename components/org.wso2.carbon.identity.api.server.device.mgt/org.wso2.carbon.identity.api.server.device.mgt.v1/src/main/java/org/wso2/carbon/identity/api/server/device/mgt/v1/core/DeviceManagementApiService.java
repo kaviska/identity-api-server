@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.server.common.ContextLoader;
-import org.wso2.carbon.identity.api.server.common.Util;
 import org.wso2.carbon.identity.api.server.common.error.APIError;
 import org.wso2.carbon.identity.api.server.common.error.ErrorResponse;
 import org.wso2.carbon.identity.api.server.device.mgt.common.Constants;
@@ -37,6 +36,7 @@ import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
@@ -49,6 +49,7 @@ public class DeviceManagementApiService {
     private static final Log LOG = LogFactory.getLog(DeviceManagementApiService.class);
     private static final int DEFAULT_LIMIT = 30;
     private static final int DEFAULT_OFFSET = 0;
+    private static final int MAXIMUM_LIMIT = 100;
     private static final int DEVICE_NAME_MAX_LENGTH = 255;
 
     private final DeviceManagementService deviceManagementService;
@@ -71,24 +72,26 @@ public class DeviceManagementApiService {
 
         int resolvedLimit = limit != null ? limit : DEFAULT_LIMIT;
         int resolvedOffset = offset != null ? offset : DEFAULT_OFFSET;
-        String resolvedUserId = StringUtils.isNotBlank(userId) ? userId : null;
         validatePaginationParameters(resolvedLimit, resolvedOffset);
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            int totalResults = deviceManagementService.getDeviceCount(tenantDomain, resolvedUserId);
-            List<Device> devices = deviceManagementService.getDevices(
-                    tenantDomain, resolvedOffset, resolvedLimit, resolvedUserId);
+            int totalResults;
+            List<Device> devices;
+            if (StringUtils.isNotBlank(userId)) {
+                totalResults = deviceManagementService.getDeviceCountByUserId(userId, tenantDomain);
+                devices = deviceManagementService.getDevicesByUserId(
+                        userId, tenantDomain, resolvedOffset, resolvedLimit);
+            } else {
+                totalResults = deviceManagementService.getDeviceCount(tenantDomain);
+                devices = deviceManagementService.getDevices(tenantDomain, resolvedOffset, resolvedLimit);
+            }
 
             List<DeviceResponse> items = devices.stream()
                     .map(DeviceResponseBuilder::buildDeviceResponse)
                     .collect(Collectors.toList());
 
-            List<DeviceListLink> links = Util.buildPaginationLinks(
-                            resolvedLimit, resolvedOffset, totalResults, Constants.DEVICE_PATH_COMPONENT)
-                    .entrySet().stream()
-                    .map(link -> new DeviceListLink().rel(link.getKey()).href(link.getValue()))
-                    .collect(Collectors.toList());
+            List<DeviceListLink> links = buildPaginationLinks(resolvedLimit, resolvedOffset, totalResults, userId);
 
             return new DeviceListResponse()
                     .totalResults(totalResults)
@@ -97,19 +100,74 @@ public class DeviceManagementApiService {
                     .devices(items)
                     .links(links);
         } catch (DeviceMgtException e) {
-            throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_LISTING_DEVICES, null);
+            throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_LISTING_DEVICES);
         }
     }
 
     private void validatePaginationParameters(int limit, int offset) {
 
-        if (limit < 1 || offset < 0) {
+        if (limit < 1 || limit > MAXIMUM_LIMIT || offset < 0) {
             throw new APIError(Response.Status.BAD_REQUEST, new ErrorResponse.Builder()
                     .withCode(Constants.ErrorMessage.ERROR_CODE_INVALID_PAGINATION.code())
                     .withMessage(Constants.ErrorMessage.ERROR_CODE_INVALID_PAGINATION.message())
                     .withDescription(Constants.ErrorMessage.ERROR_CODE_INVALID_PAGINATION.description())
                     .build(LOG, "Invalid pagination parameters."));
         }
+    }
+
+    /**
+     * Builds 'next' and 'previous' pagination links for the device list, carrying the {@code userId}
+     * filter (when present) on every emitted link so that following a link does not widen the result set.
+     *
+     * @param limit        Value of the 'limit' parameter.
+     * @param offset       Value of the 'offset' parameter.
+     * @param totalResults Total number of matching devices.
+     * @param userId       ID of the user devices are filtered by, or {@code null}/blank for no filtering.
+     * @return List of pagination links.
+     */
+    private List<DeviceListLink> buildPaginationLinks(int limit, int offset, int totalResults, String userId) {
+
+        List<DeviceListLink> links = new ArrayList<>();
+        String baseUrl = Constants.V1_API_PATH_COMPONENT + Constants.DEVICE_PATH_COMPONENT;
+
+        // Next link.
+        if ((offset + limit) < totalResults) {
+            links.add(buildPageLink(baseUrl, Constants.PAGE_LINK_REL_NEXT, offset + limit, limit, userId));
+        }
+
+        /*
+        Previous link.
+        Previous link matters only if offset is greater than 0.
+        */
+        if (offset > 0) {
+            if ((offset - limit) >= 0) { // A previous page of size 'limit' exists.
+                links.add(buildPageLink(baseUrl, Constants.PAGE_LINK_REL_PREVIOUS,
+                        calculateOffsetForPreviousLink(offset, limit, totalResults), limit, userId));
+            } else { // A previous page exists but it's size is less than the specified limit.
+                links.add(buildPageLink(baseUrl, Constants.PAGE_LINK_REL_PREVIOUS, 0, offset, userId));
+            }
+        }
+
+        return links;
+    }
+
+    private DeviceListLink buildPageLink(String baseUrl, String rel, int offset, int limit, String userId) {
+
+        String query = StringUtils.isNotBlank(userId)
+                ? String.format(Constants.PAGINATION_WITH_USER_ID_LINK_FORMAT, offset, limit, userId)
+                : String.format(Constants.PAGINATION_LINK_FORMAT, offset, limit);
+        return new DeviceListLink().rel(rel).href(ContextLoader.buildURIForBody(baseUrl + query).toString());
+    }
+
+    private int calculateOffsetForPreviousLink(int offset, int limit, int total) {
+
+        int newOffset = offset - limit;
+        if (newOffset < total) {
+            return newOffset;
+        }
+
+        // If offset is greater than total, go back by the chunks of limit until a proper page is found.
+        return calculateOffsetForPreviousLink(newOffset, limit, total);
     }
 
     /**
@@ -133,7 +191,7 @@ public class DeviceManagementApiService {
             }
             return DeviceResponseBuilder.buildDeviceResponse(device);
         } catch (DeviceMgtException e) {
-            throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_DEVICE, deviceId);
+            throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_DEVICE);
         }
     }
 
@@ -154,7 +212,7 @@ public class DeviceManagementApiService {
                     deviceId, patchRequest.getDeviceName(), tenantDomain);
             return DeviceResponseBuilder.buildDeviceResponse(updated);
         } catch (DeviceMgtException e) {
-            throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_UPDATING_DEVICE, deviceId);
+            throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_UPDATING_DEVICE);
         }
     }
 
@@ -181,11 +239,11 @@ public class DeviceManagementApiService {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
             deviceManagementService.deleteDevice(deviceId, tenantDomain);
         } catch (DeviceMgtException e) {
-            throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_DELETING_DEVICE, deviceId);
+            throw handleException(e, Constants.ErrorMessage.ERROR_CODE_ERROR_DELETING_DEVICE);
         }
     }
 
-    private APIError handleException(DeviceMgtException e, Constants.ErrorMessage errorEnum, String data) {
+    private APIError handleException(DeviceMgtException e, Constants.ErrorMessage errorEnum) {
 
         ErrorResponse errorResponse;
         Response.Status status;
