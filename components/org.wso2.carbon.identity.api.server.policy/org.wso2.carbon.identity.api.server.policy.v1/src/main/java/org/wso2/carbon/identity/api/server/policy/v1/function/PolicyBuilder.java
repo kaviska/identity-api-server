@@ -18,11 +18,9 @@
 
 package org.wso2.carbon.identity.api.server.policy.v1.function;
 
-import org.wso2.carbon.identity.api.server.policy.common.Constants;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyRequest;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyResourceRequest;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyUpdateRequest;
-import org.wso2.carbon.identity.api.server.policy.v1.util.PolicyManagementAPIErrorBuilder;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
@@ -31,7 +29,6 @@ import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.ws.rs.core.Response;
 
 /**
  * Builds a Policy (domain model) from a PolicyRequest (API model).
@@ -46,12 +43,11 @@ public class PolicyBuilder {
 
     }
 
-    public static Policy buildPolicy(PolicyRequest policyRequest, String policyId, String tenantDomain)
+    public static Policy buildPolicy(PolicyRequest policyRequest, String tenantDomain)
             throws PolicyManagementClientException {
 
         List<PolicyResource> resources = buildPolicyResources(policyRequest.getResources(), tenantDomain);
         return new Policy.Builder()
-                .id(policyId)
                 .name(policyRequest.getName())
                 .resources(resources)
                 .build();
@@ -75,7 +71,6 @@ public class PolicyBuilder {
         if (resourceRequests == null || resourceRequests.isEmpty()) {
             return Collections.emptyList();
         }
-        // A loop is used rather than a stream because the resource builder raises a checked exception.
         List<PolicyResource> resources = new ArrayList<>();
         for (PolicyResourceRequest resourceRequest : resourceRequests) {
             resources.add(toRulePolicyResource(resourceRequest, tenantDomain));
@@ -86,19 +81,9 @@ public class PolicyBuilder {
     private static PolicyResource toRulePolicyResource(PolicyResourceRequest resourceRequest, String tenantDomain)
             throws PolicyManagementClientException {
 
-        validateResourceType(resourceRequest.getResourceType());
         return new RulePolicyResource.Builder()
                 .target(resourceRequest.getTarget())
                 .rule(PolicyRuleBuilder.buildRule(resourceRequest.getRule(), tenantDomain))
                 .build();
-    }
-
-    private static void validateResourceType(PolicyResourceRequest.ResourceTypeEnum resourceType) {
-
-        // resourceType is optional in the API and defaults to RULE; RULE is the only supported type.
-        if (resourceType != null && resourceType != PolicyResourceRequest.ResourceTypeEnum.RULE) {
-            throw PolicyManagementAPIErrorBuilder.handleException(Response.Status.BAD_REQUEST,
-                    Constants.ErrorMessage.ERROR_CODE_UNSUPPORTED_RESOURCE_TYPE, resourceType.toString());
-        }
     }
 }

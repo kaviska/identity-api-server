@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.api.server.policy.v1.core;
 import org.wso2.carbon.identity.api.server.common.ContextLoader;
 import org.wso2.carbon.identity.api.server.common.Util;
 import org.wso2.carbon.identity.api.server.policy.common.Constants;
-import org.wso2.carbon.identity.api.server.policy.common.PolicyServiceHolder;
 import org.wso2.carbon.identity.api.server.policy.v1.function.PolicyBuilder;
 import org.wso2.carbon.identity.api.server.policy.v1.function.PolicyResponseBuilder;
 import org.wso2.carbon.identity.api.server.policy.v1.model.PolicyListItem;
@@ -34,7 +33,6 @@ import org.wso2.carbon.identity.api.server.policy.v1.util.PolicyManagementAPIErr
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
-import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,32 +41,16 @@ import javax.ws.rs.core.Response;
 /**
  * Core service for the Policy API — handles policy CRUD operations.
  */
-public class PolicyService {
+public class PolicyManagementService {
 
     private static final int DEFAULT_LIMIT = 30;
     private static final int DEFAULT_OFFSET = 0;
 
-    private static final PolicyService SERVICE;
+    private final org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService
+            policyManagementService;
 
-    static {
-        PolicyManagementService policyManagementService =
-                PolicyServiceHolder.getPolicyManagementService();
-
-        if (policyManagementService == null) {
-            throw new IllegalStateException("PolicyManagementService is not available from OSGi context.");
-        }
-
-        SERVICE = new PolicyService(policyManagementService);
-    }
-
-    public static PolicyService getPolicyService() {
-
-        return SERVICE;
-    }
-
-    private final PolicyManagementService policyManagementService;
-
-    public PolicyService(PolicyManagementService policyManagementService) {
+    public PolicyManagementService(
+            org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService policyManagementService) {
 
         this.policyManagementService = policyManagementService;
     }
@@ -83,7 +65,7 @@ public class PolicyService {
 
         try {
             String tenantDomain = ContextLoader.getTenantDomainFromContext();
-            Policy policy = PolicyBuilder.buildPolicy(policyRequest, null, tenantDomain);
+            Policy policy = PolicyBuilder.buildPolicy(policyRequest, tenantDomain);
             Policy createdPolicy = policyManagementService.addPolicy(policy, tenantDomain);
             return PolicyResponseBuilder.buildPolicyResponse(createdPolicy);
         } catch (PolicyManagementException e) {
@@ -158,7 +140,7 @@ public class PolicyService {
      * @param filter Name substring filter; null or blank returns all policies.
      * @return Paginated policy list response.
      */
-    public PolicyListResponse getPolicies(Integer limit, Integer offset, String filter) {
+    public PolicyListResponse getPoliciesBasicInfo(Integer limit, Integer offset, String filter) {
 
         int resolvedLimit = limit != null ? limit : DEFAULT_LIMIT;
         int resolvedOffset = offset != null ? offset : DEFAULT_OFFSET;
